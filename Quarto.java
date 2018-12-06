@@ -25,8 +25,8 @@ class BoardObserver extends Jpanel implements Obserever {
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
-    public BoardObserver(BoardObservable Observable){
-	BO = Observable;
+    public BoardObserver(BoardObservable observable){
+	BO = observable;
 	BO.addObserver(this);
 	label = new JLabel();
 	this.add(label);
@@ -40,9 +40,9 @@ class BoardObserver extends Jpanel implements Obserever {
 }
 
 class Battle extends BoardObserver implements MouseListener { 
-    private int place;
-    public Battle(BoardObservable Observable, int place){
-	super(Observable);
+    protected int place;
+    public Battle(BoardObservable observable, int place){
+	super(observable);
 	this.place = place;
 	this.addMouseListener(this);
     }
@@ -64,8 +64,25 @@ class Battle extends BoardObserver implements MouseListener {
     
 }
 
-class Standby {
-
+class Standby extends Battle {
+    public Standby(BoardObservable Observable, int place){
+	super(observable);
+	this.place = place;
+	this.addMouseListener(this);
+    }
+    
+    @Override
+    public void update(Observable o, Object arg){
+	this.val = get_piece(this.place);
+	this.label.setText(String.valueOf(this.val));
+    }
+   
+    @Override
+    public void mouseClicked(MouseEvent e){
+	this.val = get_piece(this.place);
+	this.BO.set_piece(this.val, this.place);
+    }
+    
 }
 
 class BoardFrame {
