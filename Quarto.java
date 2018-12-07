@@ -3,43 +3,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
-class Piece {
-    private int height, color, shape, hole;
-    public Piece(int height, int color, int shape, int hole){
-	this.height = height;
-	this.color = color;
-	this.shape = shape;
-	this.hole = hole;
-    }
-    
-    public int get_val(){
-	return height * color * shape * hole;
-    }
-}
-
 class BoardObservable extends Observable { 
-    int b[] = new int[16];//board
-    for(int i = 0;i<16;i++){
-	b[i] = 0;
-    }
-    int koma[] = new int[16];
-    koma[0] = 1;
-    koma[1] = 2;
-    koma[2] = 3;
-    koma[3] = 5;
-    koma[4] = 6;
-    koma[5] = 7;
-    koma[6] = 10;
-    koma[7] = 14;
-    koma[8] = 15;
-    koma[9] = 21;
-    koma[10] = 30;
-    koma[11] = 35;
-    koma[12] = 42;
-    koma[13] = 70;
-    koma[14] = 105;
-    koma[15] = 210;
-    int sp = 0; //select position 
+    private int b[] = new int[16];  //board
+    private int koma[] = {1,2,3,5,6,7,10,14,15,21,30,35,42,70,105,210};
+    private int sp = 0; //select position 
     public void set_piece(int s,int p){ //sum,position
 	b[p] = s;
 	sp = 0;
@@ -47,10 +14,13 @@ class BoardObservable extends Observable {
 	notifyObservers();
     }  
     
-    public void get_piece(int p){
+    public int get_piece(int p){
 	return b[p];
     }
-    public void get_lineval(int p1,p2,p3,p4){
+    public int get_standbypiece(int p){
+	return koma[p];
+    }
+    public int get_lineval(int p1, int p2, int p3, int p4){
 	int n1 = get_piece(p1);
 	int n2 = get_piece(p2); 
 	int n3 = get_piece(p3);
@@ -80,12 +50,12 @@ class BoardObservable extends Observable {
 	setChanged();
 	notifyObservers();
     }
-    public void get_selectpiece(){
+    public int get_selectpiece(){
 	return sp;
     }
 }
 
-class BoardObserver extends JPanel implements Obserever {
+class BoardObserver extends JPanel implements Observer {
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
@@ -94,13 +64,16 @@ class BoardObserver extends JPanel implements Obserever {
 	BO.addObserver(this);
 	label = new JLabel();
 	this.add(label);
+	val = BO.get_selectpiece();
+	label.setText(String.valueOf(val));
+	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26)); 
     }
     
     public void update(Observable o, Object arg){
 	val = BO.get_selectpiece();
 	label.setText(String.valueOf(val));
     }
-
+    
 }
 
 class Battle extends BoardObserver implements MouseListener {   //BattleはBoardObserverを継承
@@ -109,8 +82,10 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	super(observable);
 	this.place = place;
 	this.addMouseListener(this);
+        this.val = this.BO.get_piece(place);
+	this.label.setText(String.valueOf(this.val));
     }
-
+    
     @Override                                                //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
         this.val = this.BO.get_piece(place);
@@ -118,65 +93,85 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
     }
     
     public void mouseClicked(MouseEvent e){
-	this.val = get_selectpiece();
+	this.val = this.BO.get_selectpiece();
+	if(this.val == 0)
+	    return;
+	if(this.BO.get_piece(place) != 0)
+	    return;
 	this.BO.set_piece(this.val, place);
+
+	this.setBackground(null);
     }
     public void mousePressed(MouseEvent e) { }
     public void mouseReleased(MouseEvent e){ }
-    public void mouseEntered(MouseEvent e) { }
-    public void mouseExited(MouseEvent e)  { }
+    public void mouseEntered(MouseEvent e) { 
+	this.setBackground(new Color(0,0,255,50));
+    }
+    public void mouseExited(MouseEvent e)  {
+	this.setBackground(null);
+    }
     
 }
 
 class Standby extends Battle {                                  //StandbyはBattleを継承
-    public Standby(BoardObservable Observable, int place){
-	super(observable);
+    public Standby(BoardObservable observable, int place){
+	super(observable, place);
 	this.place = place;
 	this.addMouseListener(this);
+	this.val = this.BO.get_standbypiece(this.place);
+	this.label.setText(String.valueOf(this.val));
     }
     
     @Override                                                //updateをOverrideでStandby用に変更
     public void update(Observable o, Object arg){
-	this.val = get_piece(this.place);
+	this.val = this.BO.get_standbypiece(this.place);
 	this.label.setText(String.valueOf(this.val));
     }
-   
+    
     @Override                                                //mouseClickedもStandby用に変更
     public void mouseClicked(MouseEvent e){
-	this.val = get_piece(this.place);
-	this.BO.set_piece(this.val, this.place);
+	System.out.println(+place+"");
+	this.val = this.BO.get_standbypiece(this.place);
+	System.out.println(this.val+"");
+	if(BO.get_selectpiece() != 0)
+	    return;
+	if(this.val != 0)
+	    this.BO.set_selectpiece(this.val, this.place);
+
+	this.setBackground(null);
     }
     
 }
 
 class BoardFrame extends JFrame {
-
+    
+    public JPanel BattlePanel, SubPanel, WaitPanel;
+    public BoardObservable b;
     public BoardFrame(){
-	this.seTitle("Quarto");
-	this.setSize(300,200);
-	BoardObservable b = new BoardObservable();
-	public JFrame BattleFrame = new JFrame(); 
-	public JFrame SubFrame = new JFrame();
-	public JFrame WaitFrame = new JFrame();
+	b = new BoardObservable();
+	BattlePanel = new JPanel(); 
+	SubPanel = new JPanel();
+	WaitPanel = new JPanel();
 	this.setLayout(new GridLayout(1,2));
-	this.add(BattleFrame);
-	this.add(SubFrame);
-	BattleFrame.setLayout(new GridLayout(4,4)); 
+	BattlePanel.setLayout(new GridLayout(4,4)); 
 	for(int i = 0; i < 16; i++){
-	    BattleFrame.add(new Battle(b, i));
+	    BattlePanel.add(new Battle(b, i));
 	}
-	SubFrame.setLayout(new GridLayout(2,1));
-	SubFrame.add(WaitFrame);
-	SubFrame.add(new BoardObserver(b));
-	WaitFrame.setLayout(new GridLayout(4,4));
+	SubPanel.setLayout(new GridLayout(2,1));
+	WaitPanel.setLayout(new GridLayout(4,4));
 	for(int j = 0; j < 16; j++){
-	    WaitFrame.add(new Standby(b, j));
+	    WaitPanel.add(new Standby(b, j));
 	}
+	SubPanel.add(WaitPanel);
+	SubPanel.add(new BoardObserver(b));
+	this.add(BattlePanel);
+	this.add(SubPanel);
+	this.setTitle("Quarto");
+	this.setSize(600,400);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	this.pack();
 	this.setVisible(true);
     }
-
+    
     public static void main(String argv[]) {
 	new BoardFrame();
     }
