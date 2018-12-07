@@ -152,13 +152,13 @@ class BoardFrame extends JFrame {
 	BattlePanel = new JPanel(); 
 	SubPanel = new JPanel();
 	WaitPanel = new JPanel();
-	this.setLayout(new GridLayout(1,2));
-	BattlePanel.setLayout(new GridLayout(4,4)); 
+	this.setLayout(new GridLayout(1,2));         //画面をBattlePanel,SubPanel用に２分割
+	BattlePanel.setLayout(new GridLayout(4,4));  //BattlePanel内を16分割
 	for(int i = 0; i < 16; i++){
 	    BattlePanel.add(new Battle(b, i));
 	}
-	SubPanel.setLayout(new GridLayout(2,1));
-	WaitPanel.setLayout(new GridLayout(4,4));
+	SubPanel.setLayout(new GridLayout(2,1));     //SubPanel内をWaitPanel,BoardObserver用に２分割
+	WaitPanel.setLayout(new GridLayout(4,4));    //WaitPanel内を16分割
 	for(int j = 0; j < 16; j++){
 	    WaitPanel.add(new Standby(b, j));
 	}
@@ -175,4 +175,6 @@ class BoardFrame extends JFrame {
     public static void main(String argv[]) {
 	new BoardFrame();
     }
+
 }
+
