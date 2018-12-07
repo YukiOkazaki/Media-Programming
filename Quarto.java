@@ -17,8 +17,72 @@ class Piece {
     }
 }
 
-class BoardObservable {
+class BoardObservable extends Observable { 
+    int b[] = new int[16];//board
+    for(int i = 0;i<16;i++){
+	b[i] = 0;
+    }
+    int koma[] = new int[16];
+    koma[0] = 1;
+    koma[1] = 2;
+    koma[2] = 3;
+    koma[3] = 5;
+    koma[4] = 6;
+    koma[5] = 7;
+    koma[6] = 10;
+    koma[7] = 14;
+    koma[8] = 15;
+    koma[9] = 21;
+    koma[10] = 30;
+    koma[11] = 35;
+    koma[12] = 42;
+    koma[13] = 70;
+    koma[14] = 105;
+    koma[15] = 210;
+    int sp = 0; //select position 
+    public void set_piece(int s,int p){ //sum,position
+	b[p] = s;
+	sp = 0;
+	setChanged();
+	notifyObservers();
+    }  
     
+    public void get_piece(int p){
+	return b[p];
+    }
+    public void get_lineval(int p1,p2,p3,p4){
+	int n1 = get_piece(p1);
+	int n2 = get_piece(p2); 
+	int n3 = get_piece(p3);
+	int n4 = get_piece(p4);
+	int mul;
+	mul = n1*n2*n3*n4; /*b[p1]*b[p2]*b[p3]*b[p4];*/
+	return mul;
+    }
+    public void is_complete(){
+	if(get_lineval(0,4,8,12)%16 == 0 ||get_lineval(0,4,8,12)%2 !=0){
+	} 
+	
+	get_lineval(1,5,9,13);
+	get_lineval(2,6,10,14);
+	get_lineval(3,7,11,15);
+	get_lineval(0,1,2,3);
+	get_lineval(4,5,6,7);
+	get_lineval(8,9,10,11);
+	get_lineval(12,13,14,15);
+	get_lineval(0,5,10,15);
+	get_lineval(3,6,9,12);
+	
+    }
+    public void set_selectpiece(int s,int p){
+	sp = s;
+	koma[p] = 0;
+	setChanged();
+	notifyObservers();
+    }
+    public void get_selectpiece(){
+	return sp;
+    }
 }
 
 class BoardObserver extends JPanel implements Obserever {
