@@ -71,7 +71,16 @@ class BoardObserver extends JPanel implements Observer {
     
     public void update(Observable o, Object arg){
 	val = BO.get_selectpiece();
-	label.setText(String.valueOf(val));
+	if(val != 0){
+	    label.setText("");
+	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.3),(int)(icon.getIconHeight()*0.3),Image.SCALE_DEFAULT);
+	    ImageIcon smallicon = new ImageIcon(smallimg);
+	    label.setIcon(smallicon);
+	} else {
+	    label.setIcon(null);
+	    label.setText(String.valueOf(val));
+	}
     }
     
 }
@@ -83,13 +92,23 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	this.place = place;
 	this.addMouseListener(this);
         this.val = this.BO.get_piece(place);
-	this.label.setText(String.valueOf(this.val));
+	this.label.setText(String.valueOf(this.val));	
     }
     
     @Override                                                //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
         this.val = this.BO.get_piece(place);
 	this.label.setText(String.valueOf(this.val));
+	if(val != 0){
+	    label.setText("");
+	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.15),(int)(icon.getIconHeight()*0.15),Image.SCALE_DEFAULT);
+	    ImageIcon smallicon = new ImageIcon(smallimg);
+	    this.label.setIcon(smallicon);
+	} else {
+	    this.label.setIcon(null);
+	    this.label.setText(String.valueOf(this.val));
+	}
     }
     
     public void mouseClicked(MouseEvent e){
@@ -99,7 +118,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	if(this.BO.get_piece(place) != 0)
 	    return;
 	this.BO.set_piece(this.val, place);
-
+	
 	this.setBackground(null);
     }
     public void mousePressed(MouseEvent e) { }
@@ -119,13 +138,31 @@ class Standby extends Battle {                                  //StandbyはBatt
 	this.place = place;
 	this.addMouseListener(this);
 	this.val = this.BO.get_standbypiece(this.place);
-	this.label.setText(String.valueOf(this.val));
+	if(val != 0){
+	    label.setText("");
+	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.075),(int)(icon.getIconHeight()*0.075),Image.SCALE_DEFAULT);
+	    ImageIcon smallicon = new ImageIcon(smallimg);
+	    this.label.setIcon(smallicon);
+	} else {
+	    this.label.setIcon(null);
+	    this.label.setText(String.valueOf(this.val));
+	}
     }
     
     @Override                                                //updateをOverrideでStandby用に変更
     public void update(Observable o, Object arg){
 	this.val = this.BO.get_standbypiece(this.place);
-	this.label.setText(String.valueOf(this.val));
+	if(val != 0){
+	    label.setText("");
+	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.075),(int)(icon.getIconHeight()*0.075),Image.SCALE_DEFAULT);
+	    ImageIcon smallicon = new ImageIcon(smallimg);
+	    this.label.setIcon(smallicon);
+	} else {
+	    this.label.setIcon(null);
+	    this.label.setText(String.valueOf(this.val));
+	}
     }
     
     @Override                                                //mouseClickedもStandby用に変更
@@ -167,7 +204,7 @@ class BoardFrame extends JFrame {
 	this.add(BattlePanel);
 	this.add(SubPanel);
 	this.setTitle("Quarto");
-	this.setSize(600,400);
+	this.setSize(1600,800);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
