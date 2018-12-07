@@ -85,8 +85,8 @@ class Standby extends Battle {                                  //StandbyはBatt
     
 }
 
-class BoardFrame extends JFrame {
-
+class BoardFrame extends JFrame{
+    
     public BoardFrame(){
 	this.seTitle("Quarto");
 	this.setSize(300,200);
@@ -94,17 +94,17 @@ class BoardFrame extends JFrame {
 	public JFrame BattleFrame = new JFrame(); 
 	public JFrame SubFrame = new JFrame();
 	public JFrame WaitFrame = new JFrame();
-	this.setLayout(new GridLayout(1,2));
+	this.setLayout(new GridLayout(1,2));         //画面をBattleFrame,SubFrame用に２分割
 	this.add(BattleFrame);
 	this.add(SubFrame);
-	BattleFrame.setLayout(new GridLayout(4,4)); 
+	BattleFrame.setLayout(new GridLayout(4,4));  //BattleFrame内を１６分割
 	for(int i = 0; i < 16; i++){
 	    BattleFrame.add(new Battle(b, i));
 	}
-	SubFrame.setLayout(new GridLayout(2,1));
+	SubFrame.setLayout(new GridLayout(2,1));     //SubFrame内をWaitFrame,BoardObserver用に２分割
 	SubFrame.add(WaitFrame);
 	SubFrame.add(new BoardObserver(b));
-	WaitFrame.setLayout(new GridLayout(4,4));
+	WaitFrame.setLayout(new GridLayout(4,4));    //WaitFrame内を１６分割
 	for(int j = 0; j < 16; j++){
 	    WaitFrame.add(new Standby(b, j));
 	}
@@ -112,8 +112,8 @@ class BoardFrame extends JFrame {
 	this.pack();
 	this.setVisible(true);
     }
-
     public static void main(String argv[]) {
 	new BoardFrame();
     }
+
 }
