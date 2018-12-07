@@ -21,7 +21,7 @@ class BoardObservable {
     
 }
 
-class BoardObserver extends Jpanel implements Obserever {
+class BoardObserver extends JPanel implements Obserever {
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
@@ -39,7 +39,7 @@ class BoardObserver extends Jpanel implements Obserever {
 
 }
 
-class Battle extends BoardObserver implements MouseListener { 
+class Battle extends BoardObserver implements MouseListener {   //BattleはBoardObserverを継承
     protected int place;
     public Battle(BoardObservable observable, int place){
 	super(observable);
@@ -47,7 +47,7 @@ class Battle extends BoardObserver implements MouseListener {
 	this.addMouseListener(this);
     }
 
-    @Override
+    @Override                                                //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
         this.val = this.BO.get_piece(place);
 	this.label.setText(String.valueOf(this.val));
@@ -64,20 +64,20 @@ class Battle extends BoardObserver implements MouseListener {
     
 }
 
-class Standby extends Battle {
+class Standby extends Battle {                                  //StandbyはBattleを継承
     public Standby(BoardObservable Observable, int place){
 	super(observable);
 	this.place = place;
 	this.addMouseListener(this);
     }
     
-    @Override
+    @Override                                                //updateをOverrideでStandby用に変更
     public void update(Observable o, Object arg){
 	this.val = get_piece(this.place);
 	this.label.setText(String.valueOf(this.val));
     }
    
-    @Override
+    @Override                                                //mouseClickedもStandby用に変更
     public void mouseClicked(MouseEvent e){
 	this.val = get_piece(this.place);
 	this.BO.set_piece(this.val, this.place);
