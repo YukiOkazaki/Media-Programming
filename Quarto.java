@@ -63,7 +63,10 @@ class BoardObserver extends JPanel implements Observer {
 	BO = observable;
 	BO.addObserver(this);
 	label = new JLabel();
-	this.add(label);
+	this.setLayout(new BorderLayout());
+	this.add(label, BorderLayout.CENTER);
+	label.setHorizontalAlignment(JLabel.CENTER);
+	label.setVerticalAlignment(JLabel.CENTER);
 	val = BO.get_selectpiece();
 	label.setText(String.valueOf(val));
 	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26)); 
@@ -74,7 +77,7 @@ class BoardObserver extends JPanel implements Observer {
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.3),(int)(icon.getIconHeight()*0.3),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*1.5),(int)(icon.getIconHeight()*1.5),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    label.setIcon(smallicon);
 	} else {
@@ -102,7 +105,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.15),(int)(icon.getIconHeight()*0.15),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.7),(int)(icon.getIconHeight()*0.7),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    this.label.setIcon(smallicon);
 	} else {
@@ -141,7 +144,7 @@ class Standby extends Battle {                                  //StandbyはBatt
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.075),(int)(icon.getIconHeight()*0.075),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.4),(int)(icon.getIconHeight()*0.4),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    this.label.setIcon(smallicon);
 	} else {
@@ -156,7 +159,7 @@ class Standby extends Battle {                                  //StandbyはBatt
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.075),(int)(icon.getIconHeight()*0.075),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.4),(int)(icon.getIconHeight()*0.4),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    this.label.setIcon(smallicon);
 	} else {
