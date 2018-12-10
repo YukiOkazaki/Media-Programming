@@ -13,7 +13,17 @@ class BoardObservable extends Observable {
 	setChanged();
 	notifyObservers();
     }  
-    
+    public void set_selectpiece(int s,int p){
+	sp = s;
+	koma[p] = 0;
+	setChanged();
+	notifyObservers();
+    }    
+    public void set_standbypiece(int s, int p){
+	koma[p] = s;
+	setChanged();
+	notifyObservers();
+    }
     public int get_piece(int p){
 	return b[p];
     }
@@ -44,12 +54,7 @@ class BoardObservable extends Observable {
 	get_lineval(3,6,9,12);
 	
     }
-    public void set_selectpiece(int s,int p){
-	sp = s;
-	koma[p] = 0;
-	setChanged();
-	notifyObservers();
-    }
+
     public int get_selectpiece(){
 	return sp;
     }
@@ -89,40 +94,40 @@ class BoardObserver extends JPanel implements Observer {
 }
 
 class Battle extends BoardObserver implements MouseListener {   //BattleはBoardObserverを継承
-    protected int place;
+    private int place;
     public Battle(BoardObservable observable, int place){
 	super(observable);
 	this.place = place;
 	this.addMouseListener(this);
-        this.val = this.BO.get_piece(place);
-	this.label.setText(String.valueOf(this.val));	
+        val = BO.get_piece(place);
+	label.setText(String.valueOf(val));	
     }
     
     @Override                                                //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
-        this.val = this.BO.get_piece(place);
-	this.label.setText(String.valueOf(this.val));
+        val = BO.get_piece(place);
+	label.setText(String.valueOf(val));
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
 	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.7),(int)(icon.getIconHeight()*0.7),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
-	    this.label.setIcon(smallicon);
+	    label.setIcon(smallicon);
 	} else {
-	    this.label.setIcon(null);
-	    this.label.setText(String.valueOf(this.val));
+	    label.setIcon(null);
+	    label.setText(String.valueOf(val));
 	}
     }
     
     public void mouseClicked(MouseEvent e){
-	this.val = this.BO.get_selectpiece();
-	if(this.val == 0)
+	val = BO.get_selectpiece();
+	if(val == 0)
 	    return;
-	if(this.BO.get_piece(place) != 0)
+	if(BO.get_piece(place) != 0)
 	    return;
-	this.BO.set_piece(this.val, place);
+	BO.set_piece(val, place);
 	
-	this.setBackground(null);
+	setBackground(null);
     }
     public void mousePressed(MouseEvent e) { }
     public void mouseReleased(MouseEvent e){ }
@@ -135,49 +140,58 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
     
 }
 
-class Standby extends Battle {                                  //StandbyはBattleを継承
+class Standby extends BoardObserver implements MouseListener {                                  //StandbyはBoardObserverを継承
+    private int tmp;
+    private int place;
     public Standby(BoardObservable observable, int place){
-	super(observable, place);
+	super(observable);
 	this.place = place;
 	this.addMouseListener(this);
-	this.val = this.BO.get_standbypiece(this.place);
+	val = BO.get_standbypiece(place);
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
 	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.4),(int)(icon.getIconHeight()*0.4),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
-	    this.label.setIcon(smallicon);
+	    label.setIcon(smallicon);
 	} else {
-	    this.label.setIcon(null);
-	    this.label.setText(String.valueOf(this.val));
+	    label.setIcon(null);
+	    label.setText(String.valueOf(val));
 	}
     }
     
-    @Override                                                //updateをOverrideでStandby用に変更
+    @Override                                                                                    //updateをOverrideでStandby用に変更
     public void update(Observable o, Object arg){
-	this.val = this.BO.get_standbypiece(this.place);
+	val = BO.get_standbypiece(place);
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
 	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*0.4),(int)(icon.getIconHeight()*0.4),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
-	    this.label.setIcon(smallicon);
+	    label.setIcon(smallicon);
 	} else {
-	    this.label.setIcon(null);
-	    this.label.setText(String.valueOf(this.val));
+	    label.setIcon(null);
+	    label.setText(String.valueOf(val));
 	}
     }
     
-    @Override                                                //mouseClickedもStandby用に変更
     public void mouseClicked(MouseEvent e){
-	System.out.println(+place+"");
-	this.val = this.BO.get_standbypiece(this.place);
-	System.out.println(this.val+"");
-	if(BO.get_selectpiece() != 0)
+	val = BO.get_standbypiece(place);
+	tmp = BO.get_selectpiece();
+	if(val == 0)
 	    return;
-	if(this.val != 0)
-	    this.BO.set_selectpiece(this.val, this.place);
-
+	BO.set_selectpiece(val, place);
+	if(tmp != 0)
+	    BO.set_standbypiece(tmp, place);
+	setBackground(null);
+    }
+    
+    public void mousePressed(MouseEvent e) { }
+    public void mouseReleased(MouseEvent e){ }
+    public void mouseEntered(MouseEvent e) { 
+	this.setBackground(new Color(0,0,255,50));
+    }
+    public void mouseExited(MouseEvent e)  {
 	this.setBackground(null);
     }
     
