@@ -6,7 +6,16 @@ import java.util.*;
 class BoardObservable extends Observable { 
     private int b[] = new int[16];  //board
     private int koma[] = {1,2,3,5,6,7,10,14,15,21,30,35,42,70,105,210};
-    private int sp = 0; //select position 
+    private int sp; //select position 
+    private int playernum;
+    private int situation; //0が選択画面、1が盤面に置く
+    public void initialize_board(){
+	sp = 0;
+	playernum = 1;
+	setChanged();
+	notifyObservers();
+    }
+
     public void set_piece(int s,int p){ //sum,position
 	b[p] = s;
 	sp = 0;
@@ -58,12 +67,27 @@ class BoardObservable extends Observable {
     public int get_selectpiece(){
 	return sp;
     }
+    public int get_playernum(){
+	return playernum;
+    }
+    public void set_playernum(int num){
+	playernum = num;
+    }
+    public int get_situation(){
+	return situation;
+    }
+    public void set_situation(int num){
+	situation = num;
+    }
+
 }
 
 class BoardObserver extends JPanel implements Observer {
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
+    protected int playernum;
+    protected int situation;
     public BoardObserver(BoardObservable observable){
 	BO = observable;
 	BO.addObserver(this);
@@ -72,25 +96,50 @@ class BoardObserver extends JPanel implements Observer {
 	this.add(label, BorderLayout.CENTER);
 	label.setHorizontalAlignment(JLabel.CENTER);
 	label.setVerticalAlignment(JLabel.CENTER);
-	val = BO.get_selectpiece();
-	label.setText(String.valueOf(val));
+
 	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26)); 
     }
     
+    public void update(Observable o, Object arg){}
+    
+}
+
+class Select extends BoardObserver {
+    protected JLabel playerlabel;
+    public Select(BoardObservable observable){
+	super(observable);
+	playerlabel = new JLabel();
+	this.add(playerlabel, BorderLayout.SOUTH);
+	val = BO.get_selectpiece();
+	label.setText(String.valueOf(val));
+	playerlabel.setHorizontalAlignment(JLabel.CENTER);
+	playerlabel.setText("");
+	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26));
+	BO.initialize_board();
+    }
+    
+    @Override
     public void update(Observable o, Object arg){
 	val = BO.get_selectpiece();
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*1.5),(int)(icon.getIconHeight()*1.5),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*1.4),(int)(icon.getIconHeight()*1.4),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    label.setIcon(smallicon);
 	} else {
 	    label.setIcon(null);
 	    label.setText(String.valueOf(val));
 	}
+	playernum = BO.get_playernum();
+	situation = BO.get_situation();
+	if(situation == 0)
+	    playerlabel.setText("<html>"+(playernum %2 +1)+"Pが相手の駒を選んでください");
+	if(situation == 1)
+	    playerlabel.setText("<html>"+playernum+"Pが駒を盤面に置いてください<br>もしくは"+(playernum %2 +1)+"Pが相手の駒を選びなおしてください</html>");
     }
     
+
 }
 
 class Battle extends BoardObserver implements MouseListener {   //BattleはBoardObserverを継承
@@ -125,8 +174,9 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    return;
 	if(BO.get_piece(place) != 0)
 	    return;
+	BO.set_playernum(BO.get_playernum()%2 + 1);
+	BO.set_situation(0);
 	BO.set_piece(val, place);
-	
 	setBackground(null);
     }
     public void mousePressed(MouseEvent e) { }
@@ -180,9 +230,11 @@ class Standby extends BoardObserver implements MouseListener {                  
 	tmp = BO.get_selectpiece();
 	if(val == 0)
 	    return;
+	BO.set_situation(1);
 	BO.set_selectpiece(val, place);
-	if(tmp != 0)
+	if(tmp != 0){
 	    BO.set_standbypiece(tmp, place);
+	}
 	setBackground(null);
     }
     
@@ -211,13 +263,13 @@ class BoardFrame extends JFrame {
 	for(int i = 0; i < 16; i++){
 	    BattlePanel.add(new Battle(b, i));
 	}
-	SubPanel.setLayout(new GridLayout(2,1));     //SubPanel内をWaitPanel,BoardObserver用に２分割
+	SubPanel.setLayout(new GridLayout(2,1));     //SubPanel内をWaitPanel,Select用に２分割
 	WaitPanel.setLayout(new GridLayout(4,4));    //WaitPanel内を16分割
 	for(int j = 0; j < 16; j++){
 	    WaitPanel.add(new Standby(b, j));
 	}
 	SubPanel.add(WaitPanel);
-	SubPanel.add(new BoardObserver(b));
+	SubPanel.add(new Select(b));
 	this.add(BattlePanel);
 	this.add(SubPanel);
 	this.setTitle("Quarto");
