@@ -11,7 +11,7 @@ class BoardObservable extends Observable {
     private int situation; //0が選択画面、1が盤面に置く
     public void initialize_board(){
 	sp = 0;
-	playernum = 1;
+	playernum = 2;
 	setChanged();
 	notifyObservers();
     }
@@ -48,7 +48,7 @@ class BoardObservable extends Observable {
 	mul = n1*n2*n3*n4; /*b[p1]*b[p2]*b[p3]*b[p4];*/
 	return mul;
     }
-    public void is_complete(){
+    public int is_complete(){
 	if(get_lineval(0,4,8,12)%16 == 0 ||get_lineval(0,4,8,12)%2 !=0){
 	} 
 	
@@ -61,6 +61,7 @@ class BoardObservable extends Observable {
 	get_lineval(12,13,14,15);
 	get_lineval(0,5,10,15);
 	get_lineval(3,6,9,12);
+	return 1;                            //ためしに1にしてるだけ
 	
     }
 
@@ -96,8 +97,7 @@ class BoardObserver extends JPanel implements Observer {
 	this.add(label, BorderLayout.CENTER);
 	label.setHorizontalAlignment(JLabel.CENTER);
 	label.setVerticalAlignment(JLabel.CENTER);
-
-	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26)); 
+	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,18)); 
     }
     
     public void update(Observable o, Object arg){}
@@ -105,7 +105,7 @@ class BoardObserver extends JPanel implements Observer {
 }
 
 class Select extends BoardObserver {
-    protected JLabel playerlabel;
+    private JLabel playerlabel;
     public Select(BoardObservable observable){
 	super(observable);
 	playerlabel = new JLabel();
@@ -114,7 +114,7 @@ class Select extends BoardObserver {
 	label.setText(String.valueOf(val));
 	playerlabel.setHorizontalAlignment(JLabel.CENTER);
 	playerlabel.setText("");
-	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,26));
+	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,18));
 	BO.initialize_board();
     }
     
@@ -124,7 +124,7 @@ class Select extends BoardObserver {
 	if(val != 0){
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
-	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*1.4),(int)(icon.getIconHeight()*1.4),Image.SCALE_DEFAULT);
+	    Image smallimg = icon.getImage().getScaledInstance((int)(icon.getIconWidth()*1.0),(int)(icon.getIconHeight()*1.0),Image.SCALE_DEFAULT);
 	    ImageIcon smallicon = new ImageIcon(smallimg);
 	    label.setIcon(smallicon);
 	} else {
@@ -134,9 +134,9 @@ class Select extends BoardObserver {
 	playernum = BO.get_playernum();
 	situation = BO.get_situation();
 	if(situation == 0)
-	    playerlabel.setText("<html>"+(playernum %2 +1)+"Pが相手の駒を選んでください");
+	    playerlabel.setText("<html>"+playernum+"Pが相手の駒を選んでください<br>そろっていればQuarto!と宣言してください</html>");
 	if(situation == 1)
-	    playerlabel.setText("<html>"+playernum+"Pが駒を盤面に置いてください<br>もしくは"+(playernum %2 +1)+"Pが相手の駒を選びなおしてください</html>");
+	    playerlabel.setText("<html>"+playernum+"Pが駒を盤面に置いてください<br>または"+(playernum %2 +1)+"Pが相手の駒を選びなおしてください</html>");
     }
     
 
@@ -174,7 +174,6 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    return;
 	if(BO.get_piece(place) != 0)
 	    return;
-	BO.set_playernum(BO.get_playernum()%2 + 1);
 	BO.set_situation(0);
 	BO.set_piece(val, place);
 	setBackground(null);
@@ -230,6 +229,8 @@ class Standby extends BoardObserver implements MouseListener {                  
 	tmp = BO.get_selectpiece();
 	if(val == 0)
 	    return;
+	if(tmp == 0)
+	    BO.set_playernum(BO.get_playernum()%2 + 1);
 	BO.set_situation(1);
 	BO.set_selectpiece(val, place);
 	if(tmp != 0){
@@ -249,15 +250,41 @@ class Standby extends BoardObserver implements MouseListener {                  
     
 }
 
+class CompleteButton extends BoardObserver implements ActionListener {
+    private JButton complete;
+    public CompleteButton(BoardObservable observable){
+	super(observable);
+	complete = new JButton("Quarto!");
+	this.setLayout(new GridLayout(2,1));
+	this.add(complete, BorderLayout.EAST);
+	
+	//	label.setVerticalAlignment(JLabel.N);
+	complete.addActionListener(this);
+	BO.initialize_board();
+    }
+    public void actionPerformed(ActionEvent e) {
+	situation = BO.get_situation();
+	playernum = BO.get_playernum();
+	if(situation == 0){
+	    if(BO.is_complete() == 1){
+		label.setText("<html>揃っています<br>"+playernum+"Pの勝ちです</html>");
+	    } else{
+		label.setText("揃っていません");
+	    }
+	}
+    }
+}
+
 class BoardFrame extends JFrame {
     
-    public JPanel BattlePanel, SubPanel, WaitPanel;
+    public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;
     public BoardObservable b;
     public BoardFrame(){
 	b = new BoardObservable();
 	BattlePanel = new JPanel(); 
 	SubPanel = new JPanel();
 	WaitPanel = new JPanel();
+	scPanel = new JPanel();
 	this.setLayout(new GridLayout(1,2));         //画面をBattlePanel,SubPanel用に２分割
 	BattlePanel.setLayout(new GridLayout(4,4));  //BattlePanel内を16分割
 	for(int i = 0; i < 16; i++){
@@ -269,7 +296,10 @@ class BoardFrame extends JFrame {
 	    WaitPanel.add(new Standby(b, j));
 	}
 	SubPanel.add(WaitPanel);
-	SubPanel.add(new Select(b));
+	scPanel.setLayout(new GridLayout(1,2));
+	scPanel.add(new Select(b));
+	scPanel.add(new CompleteButton(b));
+	SubPanel.add(scPanel);
 	this.add(BattlePanel);
 	this.add(SubPanel);
 	this.setTitle("Quarto");
