@@ -5,10 +5,12 @@ import java.util.*;
 
 class BoardObservable extends Observable { 
     private int b[] = new int[16];  //board
-    private int koma[] = {1,2,3,5,6,7,10,14,15,21,30,35,42,70,105,210};
+    private int koma[] = //{1,2,3,5,6,7,10,14,15,21,30,35,42,70,105,210};
+    {1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
     private int sp; //select position 
     private int playernum;
     private int situation; //0が選択画面、1が盤面に置く
+    private int selectplace;
     public void initialize_board(){
 	sp = 0;
 	playernum = 2;
@@ -79,6 +81,12 @@ class BoardObservable extends Observable {
     }
     public void set_situation(int num){
 	situation = num;
+    }
+    public void set_selectplace(int num){
+	selectplace = num;
+    }
+    public int get_selectplace(){
+	return selectplace;
     }
 
 }
@@ -192,6 +200,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 class Standby extends BoardObserver implements MouseListener {                                  //StandbyはBoardObserverを継承
     private int tmp;
     private int place;
+    private int selectplace;
     public Standby(BoardObservable observable, int place){
 	super(observable);
 	this.place = place;
@@ -234,8 +243,10 @@ class Standby extends BoardObserver implements MouseListener {                  
 	BO.set_situation(1);
 	BO.set_selectpiece(val, place);
 	if(tmp != 0){
-	    BO.set_standbypiece(tmp, place);
+	    selectplace = BO.get_selectplace();
+	    BO.set_standbypiece(tmp, selectplace);
 	}
+	BO.set_selectplace(place);
 	setBackground(null);
     }
     
