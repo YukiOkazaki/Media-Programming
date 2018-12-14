@@ -9,7 +9,8 @@ class BoardObservable extends Observable {
     private int koma[] = {1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
     private int sp; //select position 
     private int playernum;        //操作するのが何Pなのか1or2
-    private int situation;        //0が選択画面、1が盤面に置く
+    private int situation;        //0が選択画面、1が盤面に置く 2が終了
+    private int completeline;
     private int selectplace;      //どの場所からその駒を持って来たかを保存する変数
     public void initialize_board(){
 	sp = 0;
@@ -17,7 +18,12 @@ class BoardObservable extends Observable {
 	setChanged();
 	notifyObservers();
     }
-
+    public void finish_board(){
+	situation = 2;
+	setChanged();
+	notifyObservers();
+    }
+    
     public void set_piece(int s,int p){ //sum,position
 	b[p] = s;
 	sp = 0;
@@ -52,7 +58,7 @@ class BoardObservable extends Observable {
        
     }
     public int is_complete(){
-    int c[] =new int[10];
+	int c[] =new int[10];
         c[0] = get_lineval(0,4,8,12);
         c[1] = get_lineval(1,5,9,13);
         c[2] = get_lineval(2,6,10,14);
@@ -63,19 +69,20 @@ class BoardObservable extends Observable {
 	c[7] = get_lineval(12,13,14,15);
 	c[8] = get_lineval(0,5,10,15);
 	c[9] = get_lineval(3,6,9,12);
-     for(int i=0;i<10;i++){
-      if(c[i]%16 == 0 || c[i]%2 != 0 || 
-         c[i]%81 == 0 || c[i]%3 != 0 || 
-         c[i]%625 == 0 || c[i]%5 != 0 || 
-         c[i]%2401 == 0 || c[i]%7 != 0){
-           if(c[i] == 0){
-            continue;
-          }else{
-            return i;
-         }
-        }
-      }
-      return 10;
+	for(int i=0;i<10;i++){
+	    if(c[i]%16 == 0 || c[i]%2 != 0 || 
+	       c[i]%81 == 0 || c[i]%3 != 0 || 
+	       c[i]%625 == 0 || c[i]%5 != 0 || 
+	       c[i]%2401 == 0 || c[i]%7 != 0){
+		if(c[i] == 0){
+		    continue;
+		}else{
+		    completeline = i;
+		    return 1;
+		}
+	    }
+	}
+	return 0;
     }
 
     public int get_selectpiece(){
@@ -99,6 +106,13 @@ class BoardObservable extends Observable {
     public int get_selectplace(){
 	return selectplace;
     }
+    public int get_completeline(){
+	return 1;
+    }
+    public int is_inline(int i, int p){
+	return 1;
+    }
+
 
 }
 
@@ -193,6 +207,11 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    label.setIcon(null);
 	    //	    label.setText(String.valueOf(val));
 	}
+	if(BO.get_situation() == 2){
+	    if(BO.is_inline(BO.get_completeline(), place) == 1){
+		this.setBackground(new Color(255,0,0,100));
+	    }
+	}
     }
     
     public void mouseClicked(MouseEvent e){                     //マウスで盤面をクリックされた時の動作
@@ -208,10 +227,12 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
     public void mousePressed(MouseEvent e) { }
     public void mouseReleased(MouseEvent e){ }
     public void mouseEntered(MouseEvent e) { 
-	this.setBackground(new Color(0,0,255,50));              //マウスがこのpanelに入った場合背景を青にする
+	if(BO.get_situation() != 2)
+	    this.setBackground(new Color(0,0,255,50));              //マウスがこのpanelに入った場合背景を青にする
     }
     public void mouseExited(MouseEvent e)  {
-	this.setBackground(null);                               //マウスがこのpanelから出た場合背景を消す
+	if(BO.get_situation() != 2)
+	    this.setBackground(null);                               //マウスがこのpanelから出た場合背景を消す
     }
     
 }
@@ -302,6 +323,7 @@ class CompleteButton extends BoardObserver implements ActionListener {   //Board
 	if(situation == 0){                                     //判定できるのは盤面に置いた後のみ(situaitonが0)
 	    if(BO.is_complete() == 1){                          //is_completeが1ならば揃っている
 		label.setText("<html>揃っています<br><span style='font-size:30pt; color:"+ maincolor+";'>"+playernum+"P</span>の勝ちです</html>");
+		BO.finish_board();
 	    } else{
 		label.setText("揃っていません");
 	    }
