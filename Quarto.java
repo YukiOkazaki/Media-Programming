@@ -49,22 +49,33 @@ class BoardObservable extends Observable {
 	int mul;
 	mul = n1*n2*n3*n4; /*b[p1]*b[p2]*b[p3]*b[p4];*/
 	return mul;
+       
     }
     public int is_complete(){
-	if(get_lineval(0,4,8,12)%16 == 0 ||get_lineval(0,4,8,12)%2 !=0){
-	} 
-	
-	get_lineval(1,5,9,13);
-	get_lineval(2,6,10,14);
-	get_lineval(3,7,11,15);
-	get_lineval(0,1,2,3);
-	get_lineval(4,5,6,7);
-	get_lineval(8,9,10,11);
-	get_lineval(12,13,14,15);
-	get_lineval(0,5,10,15);
-	get_lineval(3,6,9,12);
-	return 1;                            //ためしに1にしてるだけ
-	
+    int c[] =new int[10];
+        c[0] = get_lineval(0,4,8,12);
+        c[1] = get_lineval(1,5,9,13);
+        c[2] = get_lineval(2,6,10,14);
+        c[3] = get_lineval(3,7,11,15);
+        c[4] = get_lineval(0,1,2,3);
+        c[5] = get_lineval(4,5,6,7);
+	c[6] = get_lineval(8,9,10,11);
+	c[7] = get_lineval(12,13,14,15);
+	c[8] = get_lineval(0,5,10,15);
+	c[9] = get_lineval(3,6,9,12);
+     for(int i=0;i<10;i++){
+      if(c[i]%16 == 0 || c[i]%2 != 0 || 
+         c[i]%81 == 0 || c[i]%3 != 0 || 
+         c[i]%625 == 0 || c[i]%5 != 0 || 
+         c[i]%2401 == 0 || c[i]%7 != 0){
+           if(c[i] == 0){
+            continue;
+          }else{
+            return i;
+         }
+        }
+      }
+      return 10;
     }
 
     public int get_selectpiece(){
