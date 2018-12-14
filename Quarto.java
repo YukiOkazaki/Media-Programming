@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import javax.swing.border.*;
 
 class BoardObservable extends Observable { 
     private int b[] = new int[16];  //board
@@ -164,13 +165,13 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	this.place = place;
 	this.addMouseListener(this);                            //MouseListenerを追加
         val = BO.get_piece(place);
-	label.setText(String.valueOf(val));	                //なくてもよい？
+	//	label.setText(String.valueOf(val));	                //なくてもよい？
     }
     
     @Override                                                   //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
         val = BO.get_piece(place);                              //盤面に置かれるべき駒の値をvalに入れる
-	label.setText(String.valueOf(val));                     //なくてもよい？
+	//	label.setText(String.valueOf(val));                     //なくてもよい？
 	if(val != 0){                                           //駒が有効であれば値の画像を表示 表示方法はSelectと同様
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
@@ -179,7 +180,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    label.setIcon(smallicon);
 	} else {
 	    label.setIcon(null);
-	    label.setText(String.valueOf(val));
+	    //	    label.setText(String.valueOf(val));
 	}
     }
     
@@ -300,6 +301,8 @@ class CompleteButton extends BoardObserver implements ActionListener {   //Board
 class BoardFrame extends JFrame {
     
     public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;
+    public Battle tmp1;
+    public Standby tmp2;
     public BoardObservable b;
     public BoardFrame(){
 	b = new BoardObservable();
@@ -310,12 +313,16 @@ class BoardFrame extends JFrame {
 	this.setLayout(new GridLayout(1,2));         //画面をBattlePanel,SubPanel用に２分割
 	BattlePanel.setLayout(new GridLayout(4,4));  //BattlePanel内を16分割
 	for(int i = 0; i < 16; i++){
-	    BattlePanel.add(new Battle(b, i));
+	    tmp1 = new Battle(b, i);
+	    BattlePanel.add(tmp1);
+	    tmp1.setBorder(new LineBorder(Color.BLACK, 3)); 
 	}
 	SubPanel.setLayout(new GridLayout(2,1));     //SubPanel内をWaitPanel,Select用に２分割
 	WaitPanel.setLayout(new GridLayout(4,4));    //WaitPanel内を16分割
 	for(int j = 0; j < 16; j++){
-	    WaitPanel.add(new Standby(b, j));
+	    tmp2 = new Standby(b, j);
+	    WaitPanel.add(tmp2);
+	    tmp2.setBorder(new LineBorder(Color.BLUE, 1));
 	}
 	SubPanel.add(WaitPanel);
 	scPanel.setLayout(new GridLayout(1,2));
@@ -335,4 +342,10 @@ class BoardFrame extends JFrame {
     }
 
 }
+
+/*class TitleFrame extends JFrame implements ActionListener{
+
+    public JPanel CoverPanel;
+    public JButton StartButton;*/
+    
 
