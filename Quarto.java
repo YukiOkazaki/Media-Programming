@@ -2,16 +2,201 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import javax.swing.Timer;
 import javax.swing.border.*;
+import java.net.*;
+import java.io.*;
+ 
+class CommServer {
+    private ServerSocket serverS = null;
+    private Socket clientS = null;
+    private PrintWriter out = null;
+    private BufferedReader in = null;
+    private int port=0;
+ 
+    CommServer() {}
+    CommServer(int port) { open(port); }
+    CommServer(CommServer cs) { serverS=cs.getServerSocket(); open(cs.getPortNo()); }
+    
+    ServerSocket getServerSocket() { return serverS; } 
+    int getPortNo() { return port; }
+ 
+    // サーバ用のソケット(通信路)のオープン
+    // サーバ用のソケットはクライアントからの接続待ち専用．
+    // ポート番号のみを指定する．
+    boolean open(int port){
+      this.port=port;
+      try{ 
+     if (serverS == null) { serverS = new ServerSocket(port); }
+      } catch (IOException e) {
+         System.err.println("ポートにアクセスできません。");
+         System.exit(1);
+      }
+      try{
+         clientS = serverS.accept();
+         out = new PrintWriter(clientS.getOutputStream(), true);
+         in = new BufferedReader(new InputStreamReader(clientS.getInputStream()));
+      } catch (IOException e) {
+         System.err.println("Acceptに失敗しました。");
+         System.exit(1);
+      }
+      return true;
+    }
+ 
+    // データ送信
+    boolean send(String msg){
+        if (out == null) { return false; }
+        out.println(msg);
+        return true;
+    }
+ 
+    // データ受信
+    String recv(){
+        String msg=null;
+        if (in == null) { return null; }
+        try{
+          msg=in.readLine();
+        } catch (SocketTimeoutException e){
+	    System.err.println("タイムアウトです．");
+          return null;
+        } catch (IOException e) {
+          System.err.println("受信に失敗しました。");
+          System.exit(1);
+        }
+        return msg;
+    }
+ 
+    // タイムアウトの設定
+    int setTimeout(int to){
+        try{
+          clientS.setSoTimeout(to);
+        } catch (SocketException e){
+          System.err.println("タイムアウト時間を変更できません．");
+          System.exit(1);
+        }
+        return to;
+    }
+ 
+    // ソケットのクローズ (通信終了)
+    void close(){
+      try{
+        in.close();  out.close();
+        clientS.close();  serverS.close();
+      } catch (IOException e) {
+          System.err.println("ソケットのクローズに失敗しました。");
+          System.exit(1);
+      }
+      in=null; out=null;
+      clientS=null; serverS=null;
+    }
+}
+ 
+class CommClient {
+   Socket clientS = null;
+   BufferedReader in = null;
+   PrintWriter out = null;
+ 
+   CommClient() {}
+   CommClient(String host,int port) { open(host,port); }
+ 
+   // クライアントソケット(通信路)のオープン　
+   // 接続先のホスト名とポート番号が必要．
+   boolean open(String host,int port){
+     try{
+       clientS = new Socket(InetAddress.getByName(host), port);
+       in = new BufferedReader(new InputStreamReader(clientS.getInputStream()));
+       out = new PrintWriter(clientS.getOutputStream(), true);
+     } catch (UnknownHostException e) {
+       System.err.println("ホストに接続できません。");
+       System.exit(1);
+     } catch (IOException e) {
+       System.err.println("IOコネクションを得られません。");
+       System.exit(1);
+     }
+     return true;
+   }
+ 
+    // データ送信
+    boolean send(String msg){
+      if (out == null) { return false; }
+      out.println(msg);
+      return true;
+    }
+ 
+    // データ受信
+    String recv(){
+        String msg=null;
+        if (in == null) { return null; }
+        try{
+          msg=in.readLine();
+        } catch (SocketTimeoutException e){
+            return null;
+        } catch (IOException e) {
+          System.err.println("受信に失敗しました。");
+          System.exit(1);
+        }
+        return msg;
+    }
+ 
+    // タイムアウトの設定
+    int setTimeout(int to){
+        try{
+          clientS.setSoTimeout(to);
+        } catch (SocketException e){
+          System.err.println("タイムアウト時間を変更できません．");
+          System.exit(1);
+        }
+        return to;
+    }
+ 
+    // ソケットのクローズ (通信終了)
+    void close(){
+      try{
+        in.close();  out.close();
+        clientS.close();
+      } catch (IOException e) {
+          System.err.println("ソケットのクローズに失敗しました。");
+          System.exit(1);
+      }
+      in=null; out=null;
+      clientS=null;
+    }
+}
+
 
 class BoardObservable extends Observable { 
+    private boolean server;
+    private boolean single = false;
+    private CommServer sv = null;
+    private CommClient cl = null;
     private int b[] = new int[16];  //board
     private int koma[] = {1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
-    private int sp; //select position 
-    private int playernum;        //操作するのが何Pなのか1or2
-    private int situation;        //0が選択画面、1が盤面に置く 2が終了
+    private int sp = 0; //select position 
+    private int playernum = 2;        //操作するのが何Pなのか1or2
+    private int situation = 0;        //0が選択画面、1が盤面に置く 2が終了
     private int completeline;
     private int selectplace;      //どの場所からその駒を持って来たかを保存する変数
+    
+    public BoardObservable(boolean server, String host, int port){
+	this.server = server;
+	if(server){
+	    System.out.println("Waiting for connection with port no: "+port);
+	    sv = new CommServer(port);
+	    sv.setTimeout(1);
+	    System.out.println("Connected!");
+	} else {
+	    cl = new CommClient(host, port);
+	    cl.setTimeout(1);
+	    System.out.println("Connected to "+host+":"+port+"!");
+	}
+    }
+
+    public BoardObservable(){
+	this.server = true;
+	this.single = true;
+    }
+
+   
     public void initialize_board(){
 	sp = 0;
 	playernum = 2;
@@ -100,12 +285,6 @@ class BoardObservable extends Observable {
     public void set_situation(int num){
 	situation = num;
     }
-    public void set_selectplace(int num){
-	selectplace = num;
-    }
-    public int get_selectplace(){
-	return selectplace;
-    }
     public int get_completeline(){
 	return 1;
     }
@@ -113,10 +292,98 @@ class BoardObservable extends Observable {
 	return 1;
     }
 
+  
+    public boolean isServer() { return server; }
+    public boolean isSingle() { return single; }
 
+    public void sendselect(int place){
+	if(server){
+	    String msg = String.format("%d %d %d %d %d", sp, playernum, situation, selectplace, place);
+	    sv.send(msg);
+	} else {
+	    String msg = String.format("%d %d %d %d %d", sp, playernum, situation, selectplace, place);
+	    cl.send(msg);
+	}
+    }
+    public void sendbattle(int place, int val){
+	if(server){
+	    String msg = String.format("%d %d %d", situation, place, val);
+	    sv.send(msg);
+	} else { 
+	    String msg = String.format("%d %d %d", situation, place, val);
+	    cl.send(msg);
+	}
+    }
+    public void sendcomplete(int situation, int playernum){
+	if(server){
+	    String msg = String.format("%d %d", situation, playernum);
+	    sv.send(msg);
+	} else { 
+	    String msg = String.format("%d %d", situation, playernum);
+	    cl.send(msg);
+	}
+    }
+
+    
+    public void recvselect(){
+	if(server){
+	    String msg = sv.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_selectpiece(Integer.parseInt(sm[0]), Integer.parseInt(sm[4]));
+	    set_playernum(Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[2]));
+	} else {
+	    String msg = cl.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_selectpiece(Integer.parseInt(sm[0]), Integer.parseInt(sm[4]));
+	    set_playernum(Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[2]));
+	}
+	setChanged();
+	notifyObservers();
+    }
+    
+    public void recvbattle(){
+	if(server){
+	    String msg = sv.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_piece(Integer.parseInt(sm[2]), Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[0]));
+	} else {
+	    String msg = cl.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_piece(Integer.parseInt(sm[2]), Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[0]));
+	}
+	setChanged();
+	notifyObservers();
+    }	    
+    public void recvcomplete(){
+	if(server){
+	    String msg = sv.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_playernum(Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[0]));
+	} else {
+	    String msg = cl.recv();
+	    if(msg == null) return;
+	    String[] sm = msg.split(" ");
+	    set_playernum(Integer.parseInt(sm[1]));
+	    set_situation(Integer.parseInt(sm[0]));
+	}
+	setChanged();
+	notifyObservers();
+    }
+    
 }
 
-class BoardObserver extends JPanel implements Observer {                       //observer側のすべての親クラス
+class BoardObserver extends JPanel implements Observer,ActionListener {                       //observer側のすべての親クラス
+    private Timer timer;
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
@@ -131,13 +398,25 @@ class BoardObserver extends JPanel implements Observer {                       /
 	label.setHorizontalAlignment(JLabel.CENTER);                           //ラベルの位置は水平方向で中心
 	label.setVerticalAlignment(JLabel.CENTER);                             //ラベルの位置は垂直方向で中心
 	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));                 //ラベルのフォントの設定
+	timer = new Timer(10,this);
+	timer.start();
     }
     
     public void update(Observable o, Object arg){}
     
+    public void actionPerformed(ActionEvent e){
+	if(!BO.isSingle()){
+	    if(BO.get_situation() == 0)
+		BO.recvselect();
+	    if(BO.get_situation() == 1)
+	    BO.recvbattle();
+	}
+    }
+
 }
 
-class Select extends BoardObserver {
+class Select extends BoardObserver implements ActionListener {
+
     private JLabel playerlabel;                                                //何Pが操作するべきなのか等の情報を表示するラベル
     private String maincolor, opponentcolor;                                   //IP,2Pそれぞれの色を指定する
     public Select(BoardObservable observable){
@@ -145,13 +424,13 @@ class Select extends BoardObserver {
 	playerlabel = new JLabel();
 	this.add(playerlabel, BorderLayout.SOUTH);                             //playerlabelを下に配置
 	val = BO.get_selectpiece();
-	label.setText(String.valueOf(val));                                    //なくてもよい？
 	playerlabel.setHorizontalAlignment(JLabel.CENTER);                     //plyaerlabelの水平方向の位置は中心
 	playerlabel.setText("");
 	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));           //フォント設定
 	BO.initialize_board();                                                 //一度初期化(updateを呼ぶため)
+
     }
-    
+
     @Override
     public void update(Observable o, Object arg){                              //BoardObserverを継承しているのでupdateをoverride
 	val = BO.get_selectpiece();                                            //選ばれた駒の値をvalに入れる
@@ -163,7 +442,6 @@ class Select extends BoardObserver {
 	    label.setIcon(smallicon);                                          //ラベルに配置する
 	} else {
 	    label.setIcon(null);                                               //もし有効な駒でなければ何も表示しない
-	    label.setText(String.valueOf(val));
 	}
 	playernum = BO.get_playernum();                                        //何Pの番なのかをplayernumに入れる
 	if(playernum == 1){                                                    //playernumに応じて色を決める
@@ -190,13 +468,11 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	this.place = place;
 	this.addMouseListener(this);                            //MouseListenerを追加
         val = BO.get_piece(place);
-	//	label.setText(String.valueOf(val));	                //なくてもよい？
     }
     
     @Override                                                   //updateをOverrideでBattle用に変更
     public void update(Observable o, Object arg){
         val = BO.get_piece(place);                              //盤面に置かれるべき駒の値をvalに入れる
-	//	label.setText(String.valueOf(val));                     //なくてもよい？
 	if(val != 0){                                           //駒が有効であれば値の画像を表示 表示方法はSelectと同様
 	    label.setText("");
 	    ImageIcon icon = new ImageIcon("./img/"+val+".png");
@@ -205,7 +481,6 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    label.setIcon(smallicon);
 	} else {
 	    label.setIcon(null);
-	    //	    label.setText(String.valueOf(val));
 	}
 	if(BO.get_situation() == 2){
 	    if(BO.is_inline(BO.get_completeline(), place) == 1){
@@ -213,6 +488,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    }
 	}
     }
+    
     
     public void mouseClicked(MouseEvent e){                     //マウスで盤面をクリックされた時の動作
 	val = BO.get_selectpiece();                             //どの駒が選ばれているかをvalに入れる
@@ -222,6 +498,9 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	    return;
 	BO.set_situation(0);                                    //situationを0（選択画面）に変更
 	BO.set_piece(val, place);                               //盤面に選ばれた駒を置く
+	if(!BO.isSingle()){
+	    BO.sendbattle(place, val);
+	}
 	setBackground(null);                                    //背景（青）を消す
     }
     public void mousePressed(MouseEvent e) { }
@@ -254,7 +533,6 @@ class Standby extends BoardObserver implements MouseListener {  //StandbyはBoar
 	    label.setIcon(smallicon);
 	} else {
 	    label.setIcon(null);
-	    label.setText(String.valueOf(val));
 	}
     }
     
@@ -269,7 +547,6 @@ class Standby extends BoardObserver implements MouseListener {  //StandbyはBoar
 	    label.setIcon(smallicon);
 	} else {                                                //駒がなければ何も表示しない
 	    label.setIcon(null);
-	    label.setText(String.valueOf(val));                 //なくてもよい？
 	}
     }
     
@@ -280,14 +557,15 @@ class Standby extends BoardObserver implements MouseListener {  //StandbyはBoar
 	    return;
 	if(tmp == 0)                                            //駒が選ばれていなければ、playernumを変更
 	    BO.set_playernum(BO.get_playernum()%2 + 1);
+	else 
+	    return;
 	BO.set_situation(1);                                    //situaitonを盤面におく状態（1）に変更
 	BO.set_selectpiece(val, place);                         //valを選びSelectにセットする
-	if(tmp != 0){                                           //選びなおしの動作
-	    selectplace = BO.get_selectplace();                 //selectplaceに前回どこの場所から持って来たのかという情報を入れる
-	    BO.set_standbypiece(tmp, selectplace);              //前回の場所にtmpを戻す
+	if(!BO.isSingle()){
+	    BO.sendselect(place);
 	}
-	BO.set_selectplace(place);                              //今回どこの場所から持って来たのかという情報を登録する
 	setBackground(null);                                    //背景(青)を消す
+
     }
     
     public void mousePressed(MouseEvent e) { }
@@ -312,20 +590,31 @@ class CompleteButton extends BoardObserver implements ActionListener {   //Board
 	this.add(complete);                                     //ボタンを下に追加;
 	complete.addActionListener(this);                       //ActionListenerを追加
     }
+
+    @Override
     public void actionPerformed(ActionEvent e) {                //ボタンが押された時の動作
-	situation = BO.get_situation();                         //situationを入手
-	playernum = BO.get_playernum();                         //playernumを入手
-	if(playernum == 1){                                     //playernumに応じて色を決める
-	    maincolor = "blue";
-	} else {
-	    maincolor = "red";
+	super.actionPerformed(e);
+	if(!BO.isSingle()){
+	    BO.recvcomplete();
 	}
-	if(situation == 0){                                     //判定できるのは盤面に置いた後のみ(situaitonが0)
-	    if(BO.is_complete() == 1){                          //is_completeが1ならば揃っている
-		label.setText("<html>揃っています<br><span style='font-size:30pt; color:"+ maincolor+";'>"+playernum+"P</span>の勝ちです</html>");
-		BO.finish_board();
-	    } else{
-		label.setText("揃っていません");
+	situation = BO.get_situation();                         //situationを入手
+	if(e.getSource()==complete || situation == 2){
+	    playernum = BO.get_playernum();                         //playernumを入手
+	    if(playernum == 1){                                     //playernumに応じて色を決める
+		maincolor = "blue";
+	    } else {
+		maincolor = "red";
+	    }
+	    if(situation == 0 || situation == 2){                                     //判定できるのは盤面に置いた後のみ(situaitonが0)
+		if(BO.is_complete() == 1 || situation == 2){                          //is_completeが1ならば揃っている
+		    label.setText("<html>揃っています<br><span style='font-size:30pt; color:"+ maincolor+";'>"+playernum+"P</span>の勝ちです</html>");
+		    BO.finish_board();
+		    if(!BO.isSingle()){
+			BO.sendcomplete(situation, playernum);
+		    }
+		} else{
+		    label.setText("揃っていません");
+		}
 	    }
 	}
     }
@@ -337,8 +626,8 @@ class BoardFrame extends JFrame {
     public Battle tmp1;
     public Standby tmp2;
     public BoardObservable b;
-    public BoardFrame(){
-	b = new BoardObservable();
+    public BoardFrame(BoardObservable bo){
+	b = bo;
 	BattlePanel = new JPanel(); 
 	SubPanel = new JPanel();
 	WaitPanel = new JPanel();
@@ -365,20 +654,36 @@ class BoardFrame extends JFrame {
 	this.add(BattlePanel);
 	this.add(SubPanel);
 	this.setTitle("Quarto");
-	this.setSize(1600,800);
+	this.setSize(800,400);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
     
-    public static void main(String argv[]) {
-	new BoardFrame();
+    public static void main(String[] args) {
+	String str;
+	boolean server=false;
+	if (args.length<2){
+	    System.out.println("Usage : java BoardFrame {server/single/{host name}} {port no.} \n");     
+	    System.exit(1);
+	}
+	BoardObservable bo;
+	if (args[0].equals("server")){
+	    server=true;
+	    System.out.println("Server mode");
+	    str="server";
+	    bo = new BoardObservable(server,args[0],Integer.parseInt(args[1]));
+	}else if (args[0].equals("single")){
+	    server=true;
+	    System.out.println("Single mode");
+	    str="single";
+	    bo = new BoardObservable();
+	}else{
+	    server=false;
+	    System.out.println("Client mode");
+	    str="cilent";
+	    bo = new BoardObservable(server,args[0],Integer.parseInt(args[1]));
+	}
+	BoardFrame frame = new BoardFrame(bo);
     }
-
-}
-
-/*class TitleFrame extends JFrame implements ActionListener{
-
-    public JPanel CoverPanel;
-    public JButton StartButton;*/
     
-
+}
