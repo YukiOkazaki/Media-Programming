@@ -654,7 +654,7 @@ class BoardFrame extends JFrame {
 	this.add(BattlePanel);
 	this.add(SubPanel);
 	this.setTitle("Quarto");
-	this.setSize(800,400);
+	this.setSize(1600,800);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
