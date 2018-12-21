@@ -667,12 +667,56 @@ class BoardFrame extends JFrame {
 	SubPanel.add(scPanel);
 	this.add(BattlePanel);
 	this.add(SubPanel);
-	this.setTitle("Quarto");
+	this.setTitle("Quarto - Play");
 	this.setSize(1600,800);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
     
+
+    
+}
+
+class TitleFrame extends JFrame implements ActionListener {
+
+    public JPanel TitlePanel;
+    public JButton StartButton, HowtoButton;
+    public JLabel SelectLabel, BackGroundLabel;
+    public BoardObservable b;
+    public TitleFrame(BoardObservable bo){
+	this.b = bo;
+	TitlePanel = new JPanel();
+	this.add(TitlePanel);
+	StartButton = new JButton("<html><span style='font-size:30pt; color:black;'>START</span></html>");
+	HowtoButton = new JButton("<html><span style='font-size:25pt; color:black;'>HOW TO PLAY</span></html>");
+	BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>");
+	SelectLabel = new JLabel("<html><span style='font-size:25pt; color:black;'>先攻：</span></html>");
+	TitlePanel.setLayout(null);
+	BackGroundLabel.setLayout(new BorderLayout());
+	SelectLabel.setLayout(new BorderLayout());
+	BackGroundLabel.setBounds(0, 0, 1600, 800);
+	SelectLabel.setBounds(600, 400, 100, 100);
+	StartButton.setBounds(300, 600, 300, 100);
+	HowtoButton.setBounds(1000, 600, 300, 100);
+	StartButton.addActionListener(this);
+	HowtoButton.addActionListener(this);
+
+	TitlePanel.add(BackGroundLabel);
+	TitlePanel.add(SelectLabel);
+	TitlePanel.add(StartButton);
+	TitlePanel.add(HowtoButton);
+	StartButton.setFocusPainted(false);
+	HowtoButton.setFocusPainted(false);
+	this.setTitle("Quarto - Title");
+	this.setSize(1600,800);
+	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	this.setVisible(true);
+    }
+    
+    public void actionPerformed(ActionEvent e){
+	BoardFrame f = new BoardFrame(b);
+    }
+
     public static void main(String[] args) {
 	String str;
 	boolean server=false;
@@ -697,7 +741,9 @@ class BoardFrame extends JFrame {
 	    str="cilent";
 	    bo = new BoardObservable(server,args[0],Integer.parseInt(args[1]));
 	}
-	BoardFrame frame = new BoardFrame(bo);
+	TitleFrame frame = new TitleFrame(bo);
     }
-    
+
 }
+
+			      
