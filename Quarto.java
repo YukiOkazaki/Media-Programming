@@ -455,7 +455,7 @@ class Select extends BoardObserver implements ActionListener {
 	if(situation == 0)                                                     //situationに応じてメッセージを表示する
 	    playerlabel.setText("<html><span style='font-size:24pt; color: "+maincolor+";'>"+playernum+"P</span>が相手の駒を選んでください<br>そろっていれば<span style='font-size:26pt; color: #FFCC00;'>Quarto!</span>と宣言してください</html>");
 	if(situation == 1)
-	    playerlabel.setText("<html><span style='font-size:24pt; color: "+maincolor+";'>"+playernum+"P</span>が駒を盤面に置いてください<br>または<span style='font-size:24pt; color: "+opponentcolor+";'>"+(playernum %2 +1)+"P</span>が相手の駒を選びなおしてください</html>");
+	    playerlabel.setText("<html><span style='font-size:24pt; color: "+maincolor+";'>"+playernum+"P</span>が駒を盤面に置いてください</html>");
     }
     
 
