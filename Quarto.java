@@ -163,7 +163,15 @@ class CommClient {
     }
 }
 
-
+class line{
+  int p1,p2,p3,p4;
+ public line(int p1,int p2,int p3,int p4){   
+     this.p1 = p1;
+     this.p2 = p2;
+     this.p3 = p3;
+     this.p4 = p4;
+   }
+}
 class BoardObservable extends Observable { 
     private boolean server;
     private boolean single = false;
@@ -171,10 +179,22 @@ class BoardObservable extends Observable {
     private CommClient cl = null;
     private int b[] = new int[16];  //board
     private int koma[] = {1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
+    private line l[] ={
+         new line(0,4,8,12)
+        ,new line(1,5,9,13)
+        ,new line(2,6,10,14)
+        ,new line(3,7,11,15)
+        ,new line(0,1,2,3)
+        ,new line(4,5,6,7)
+	,new line(8,9,10,11)
+	,new line(12,13,14,15)
+	,new line(0,5,10,15)
+	,new line(3,6,9,12)
+    };
     private int sp = 0; //select position 
     private int playernum = 2;        //操作するのが何Pなのか1or2
     private int situation = 0;        //0が選択画面、1が盤面に置く 2が終了
-    private int completeline;
+    private int completeline = 10;
     private int selectplace;      //どの場所からその駒を持って来たかを保存する変数
     
     public BoardObservable(boolean server, String host, int port){
@@ -232,29 +252,21 @@ class BoardObservable extends Observable {
     public int get_standbypiece(int p){
 	return koma[p];
     }
-    public int get_lineval(int p1, int p2, int p3, int p4){
-	int n1 = get_piece(p1);
-	int n2 = get_piece(p2); 
-	int n3 = get_piece(p3);
-	int n4 = get_piece(p4);
-	int mul;
-	mul = n1*n2*n3*n4; /*b[p1]*b[p2]*b[p3]*b[p4];*/
-	return mul;
-       
-    }
+    
+    public int get_lineval(line l){
+      int n1 = get_piece(l.p1);
+      int n2 = get_piece(l.p2);
+      int n3 = get_piece(l.p3);
+      int n4 = get_piece(l.p4);
+      int mul;
+       mul = n1*n2*n3*n4;
+       return mul;
+   }
     public int is_complete(){
 	int c[] =new int[10];
-        c[0] = get_lineval(0,4,8,12);
-        c[1] = get_lineval(1,5,9,13);
-        c[2] = get_lineval(2,6,10,14);
-        c[3] = get_lineval(3,7,11,15);
-        c[4] = get_lineval(0,1,2,3);
-        c[5] = get_lineval(4,5,6,7);
-	c[6] = get_lineval(8,9,10,11);
-	c[7] = get_lineval(12,13,14,15);
-	c[8] = get_lineval(0,5,10,15);
-	c[9] = get_lineval(3,6,9,12);
+       
 	for(int i=0;i<10;i++){
+        c[i] = get_lineval(l[i]);
 	    if(c[i]%16 == 0 || c[i]%2 != 0 || 
 	       c[i]%81 == 0 || c[i]%3 != 0 || 
 	       c[i]%625 == 0 || c[i]%5 != 0 || 
@@ -286,10 +298,12 @@ class BoardObservable extends Observable {
 	situation = num;
     }
     public int get_completeline(){
-	return 1;
+	return completeline;
     }
     public int is_inline(int i, int p){
-	return 1;
+      if(l[i].p1 == p ||l[i].p2 == p ||l[i].p3 == p ||l[i].p4 == p)
+        return 1;
+        return 0;
     }
 
   
