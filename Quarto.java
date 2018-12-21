@@ -498,7 +498,7 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	}
 	if(BO.get_situation() == 2){
 	    if(BO.is_inline(BO.get_completeline(), place) == 1){
-		this.setBackground(new Color(255,0,0,100));
+		this.setBackground(new Color(255,50,50,100));
 	    }
 	}
     }
