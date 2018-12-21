@@ -612,6 +612,7 @@ class CompleteButton extends BoardObserver implements ActionListener {   //Board
 	    BO.recvcomplete();
 	}
 	situation = BO.get_situation();                         //situationを入手
+	System.out.println(""+situation);
 	if(e.getSource()==complete || situation == 2){
 	    playernum = BO.get_playernum();                         //playernumを入手
 	    if(playernum == 1){                                     //playernumに応じて色を決める
