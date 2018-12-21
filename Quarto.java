@@ -57,7 +57,7 @@ class CommServer {
         try{
           msg=in.readLine();
         } catch (SocketTimeoutException e){
-	    System.err.println("タイムアウトです．");
+	    //	    System.err.println("タイムアウトです．");
           return null;
         } catch (IOException e) {
           System.err.println("受信に失敗しました。");
