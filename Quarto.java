@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.Window;
 import java.util.*;
 import javax.swing.Timer;
 import javax.swing.border.*;
@@ -178,25 +179,14 @@ class BoardObservable extends Observable {
     private boolean single = false;
     private CommServer sv = null;
     private CommClient cl = null;
-    private int b[] = new int[16];  //board
-    private int koma[] = {1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
-    private line l[] ={
-	new line(0,4,8,12),
-        new line(1,5,9,13),
-        new line(2,6,10,14),
-        new line(3,7,11,15),
-        new line(0,1,2,3),
-        new line(4,5,6,7),
-	new line(8,9,10,11),
-	new line(12,13,14,15),
-	new line(0,5,10,15),
-	new line(3,6,9,12),
-    };
-    private int sp = 0; //select position 
-    private int playernum = 2;        //操作するのが何Pなのか1or2
+    private int b[]; //board
+    private int koma[];
+    private line l[];
+    private int sp; //select position 
+    private int playernum;        //操作するのが何Pなのか1or2
     private int mynum;                //playerの番号サーバーが1P,クライアントが2P
-    private int situation = 0;        //0が選択画面、1が盤面に置く 2が終了
-    private int completeline = 0;
+    private int situation;        //0が選択画面、1が盤面に置く 2が終了
+    private int completeline;
     
     public BoardObservable(boolean server, String host, int port){
 	this.server = server;
@@ -219,8 +209,23 @@ class BoardObservable extends Observable {
 	this.single = true;
     }
     
-    
     public void initialize_board(){
+	b = new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	koma = new int[]{1,5,7,35,2,10,14,70,3,15,21,105,6,30,42,210};
+	l = new line[]{
+	    new line(0,4,8,12),
+	    new line(1,5,9,13),
+	    new line(2,6,10,14),
+	    new line(3,7,11,15),
+	    new line(0,1,2,3),
+	    new line(4,5,6,7),
+	    new line(8,9,10,11),
+	    new line(12,13,14,15),
+	    new line(0,5,10,15),
+	    new line(3,6,9,12),
+	};
+	situation = 0;
+	completeline = 0;
 	sp = 0;
 	playernum = 2;
 	setChanged();
@@ -319,73 +324,60 @@ class BoardObservable extends Observable {
     public boolean isSingle() { return single; }
     
     public void sendselect(int place){
+	String msg = String.format("%d %d %d %d", situation, playernum, sp, place);
 	if(server){
-	    String msg = String.format("%d %d %d %d", situation, playernum, sp, place);
 	    sv.send(msg);
 	} else {
-	    String msg = String.format("%d %d %d %d", situation, playernum, sp, place);
 	    cl.send(msg);
 	}
     }
     public void sendbattle(int place, int val){
+	String msg = String.format("%d %d %d", situation, place, val);
 	if(server){
-	    String msg = String.format("%d %d %d", situation, place, val);
 	    sv.send(msg);
 	} else { 
-	    String msg = String.format("%d %d %d", situation, place, val);
 	    cl.send(msg);
 	}
     }    
     
     public void recvselect(){
+	String msg;
 	if(server){
-	    String msg = sv.recv();
-	    if(msg == null) return;
-	    String[] sm = msg.split(" ");
-	    if(Integer.parseInt(sm[0]) != 2){
-		set_selectpiece(Integer.parseInt(sm[2]), Integer.parseInt(sm[3]));
-	    } else {
-		set_completeline(Integer.parseInt(sm[3]));
-	    }	    
-	    set_playernum(Integer.parseInt(sm[1]));
-	    set_situation(Integer.parseInt(sm[0]));
+	    msg = sv.recv();
 	} else {
-	    String msg = cl.recv();
-	    if(msg == null) return;
-	    String[] sm = msg.split(" ");
-	    if(Integer.parseInt(sm[0]) != 2){
-		set_selectpiece(Integer.parseInt(sm[2]), Integer.parseInt(sm[3]));
-	    } else {
-		set_completeline(Integer.parseInt(sm[3]));
-	    }
-	    set_playernum(Integer.parseInt(sm[1]));
-	    set_situation(Integer.parseInt(sm[0]));
+	    msg = cl.recv();
 	}
+	if(msg == null) return;
+	String[] sm = msg.split(" ");
+	if(Integer.parseInt(sm[0]) != 2){
+		set_selectpiece(Integer.parseInt(sm[2]), Integer.parseInt(sm[3]));
+	} else {
+	    set_completeline(Integer.parseInt(sm[3]));
+	}
+	set_playernum(Integer.parseInt(sm[1]));
+	set_situation(Integer.parseInt(sm[0]));
 	setChanged();
 	notifyObservers();
     }
     
     public void recvbattle(){
+	String msg;
 	if(server){
-	    String msg = sv.recv();
-	    if(msg == null) return;
-	    String[] sm = msg.split(" ");
-	    set_piece(Integer.parseInt(sm[2]), Integer.parseInt(sm[1]));
-	    set_situation(Integer.parseInt(sm[0]));
+	    msg = sv.recv();
 	} else {
-	    String msg = cl.recv();
-	    if(msg == null) return;
-	    String[] sm = msg.split(" ");
-	    set_piece(Integer.parseInt(sm[2]), Integer.parseInt(sm[1]));
-	    set_situation(Integer.parseInt(sm[0]));
+	    msg = cl.recv();
 	}
+	if(msg == null) return;
+	String[] sm = msg.split(" ");
+	set_piece(Integer.parseInt(sm[2]), Integer.parseInt(sm[1]));
+	set_situation(Integer.parseInt(sm[0]));
 	setChanged();
 	notifyObservers();
     }	    
 }
 
 class BoardObserver extends JPanel implements Observer,ActionListener {                       //observer側のすべての親クラス
-    private Timer timer;
+    protected Timer timer;
     protected BoardObservable BO;
     protected JLabel label;
     protected int val;
@@ -400,7 +392,7 @@ class BoardObserver extends JPanel implements Observer,ActionListener {         
 	this.add(label, BorderLayout.CENTER);                                  //panel内に表示されるラベルの追加
 	label.setHorizontalAlignment(JLabel.CENTER);                           //ラベルの位置は水平方向で中心
 	label.setVerticalAlignment(JLabel.CENTER);                             //ラベルの位置は垂直方向で中心
-	label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));                 //ラベルのフォントの設定
+	label.setFont(new Font(Font.DIALOG,Font.BOLD,40));                 //ラベルのフォントの設定
 	timer = new Timer(10,this);
 	timer.start();
 	mynum = BO.get_mynum();
@@ -421,7 +413,7 @@ class BoardObserver extends JPanel implements Observer,ActionListener {         
 class Select extends BoardObserver implements ActionListener {
 
     private JLabel playerlabel;                                                //何Pが操作するべきなのか等の情報を表示するラベル
-    private String maincolor, opponentcolor;                                   //IP,2Pそれぞれの色を指定する
+    private String maincolor, opponentcolor;                                   //1P,2Pそれぞれの色を指定する
     public Select(BoardObservable observable){
 	super(observable);                                                     //親のコンストラクタを一度呼びだす
 	playerlabel = new JLabel();
@@ -429,7 +421,7 @@ class Select extends BoardObserver implements ActionListener {
 	val = BO.get_selectpiece();
 	playerlabel.setHorizontalAlignment(JLabel.CENTER);                     //plyaerlabelの水平方向の位置は中心
 	playerlabel.setText("");
-	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));           //フォント設定
+	playerlabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));           //フォント設定
 	BO.initialize_board();                                                 //一度初期化(updateを呼ぶため)
 
     }
@@ -457,10 +449,10 @@ class Select extends BoardObserver implements ActionListener {
 	situation = BO.get_situation();                                        //選択画面なのか、盤面に置く画面なのかをsituationとして受け取る
 	if(situation == 0){                                                    //situationに応じてメッセージを表示する
 	    if(BO.isSingle()){
-		playerlabel.setText("<html><span style='font-size:24pt; color: "+maincolor+";'>"+playernum+"P</span>は相手の駒を選んでください<br>そろっていれば<span style='font-size:26pt; color: #FFCC00;'>Quarto!</span>と宣言してください</html>");
+		playerlabel.setText("<html><span style='font-size:24pt; color: "+maincolor+";'>"+playernum+"P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
 	    } else {
 		if(playernum == mynum){
-		    playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>そろっていれば<span style='font-size:26pt; color: #FFCC00;'>Quarto!</span>と宣言してください</html>");
+		    playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
 		} else {
 		    playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
 		}
@@ -507,8 +499,10 @@ class Battle extends BoardObserver implements MouseListener {   //BattleはBoard
 	}
 	if(BO.get_situation() == 2){
 	    if(BO.is_inline(BO.get_completeline(), place) == 1){
-		this.setBackground(new Color(255,50,50,100));
+		this.setBackground(new Color(255,50,50,250));
 	    }
+	} else {
+	    this.setBackground(null);
 	}
     }
     
@@ -607,41 +601,77 @@ class Standby extends BoardObserver implements MouseListener {  //StandbyはBoar
 class CompleteButton extends BoardObserver implements ActionListener {   //BoardObsever継承, ActionListenerを追加
     private JButton complete;
     private String maincolor;
+    private JButton restart;
+    private JButton quit;
+    private JPanel finishpanel;
     public CompleteButton(BoardObservable observable){
 	super(observable);                                      //親コンストラクタを呼び出す
-	complete = new JButton("<html><span style='font-size:50pt; color: #FFCC00;' >Quarto!</span></html>"); //ボタンを作成
+	//	complete = new JButton("<html><span style='font-size:50pt; color: #FFCC00;' >Quarto!</span></html>"); //ボタンを作成
+	complete = new JButton("<html><img src = 'file:title/quartobutton.png' width=350 height=100></html>"); //ボタンを作成;
+	complete.setPreferredSize(null);
 	complete.setFocusPainted(false);                        //ボタンの枠線を消す
 	this.setLayout(new GridLayout(2,1));                    //panel内をGirdLayoutにし、縦に二分割
 	this.add(complete);                                     //ボタンを下に追加;
 	complete.addActionListener(this);                       //ActionListenerを追加
+	restart = new JButton("<html><img src = 'file:title/restart.png' width=175 height=75></html>");
+	quit = new JButton("<html><img src = 'file:title/quitgame.png' width=175 height=75></html>");
+	restart.setMargin(new Insets(10, 0, 0, 0));
+	quit.setMargin(new Insets(10, 0, 0, 0));
+	restart.addActionListener(this);
+	quit.addActionListener(this);
+	restart.setFocusPainted(false);
+	quit.setFocusPainted(false);
+	finishpanel = new JPanel();
+	finishpanel.setLayout(new GridLayout(1,2));
+	finishpanel.add(restart);
+	finishpanel.add(quit);
+	
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {                //ボタンが押された時の動作
 	super.actionPerformed(e);
+	if(e.getSource() == restart){
+	    label.setText("");
+	    this.remove(finishpanel);
+	    this.add(complete);
+	    repaint();
+	    timer.start();
+	    BO.initialize_board();
+	}
+	if(e.getSource() == quit){
+	    System.exit(0);
+	}
 	situation = BO.get_situation();                         //situationを入手
 	playernum = BO.get_playernum();                         //playernumを入手
-	if(situation == 2)
-	    if(!BO.isSingle())
-		BO.sendselect(BO.get_completeline());
-	if(e.getSource()==complete || situation == 2){
+	if(e.getSource() == complete || situation == 2){
 	    if(playernum == 1){                                     //playernumに応じて色を決める
 		maincolor = "blue";
 	    } else {
 		maincolor = "red";
 	    }
 	    if(situation == 0 || situation == 2){                                     //判定できるのは盤面に置いた後のみ(situaitonが0)
+		if(!BO.isSingle())
+		    BO.recvselect();
 		if(BO.is_complete() == 1 || situation == 2){                          //is_completeが1ならば揃っている
+
 		    if(BO.isSingle()){
-			label.setText("<html>揃っています<br><span style='font-size:30pt; color:"+ maincolor+";'>"+playernum+"P</span>の勝ちです</html>");
+			label.setText("<html>揃っています<br><span style='font-size:60pt; color:"+ maincolor+";'>"+playernum+"P</span>の勝ちです</html>");
 		    } else {
 			if(playernum == mynum){
-			    label.setText("<html>揃っています<br><span style='font-size:30pt; color: blue;'>あなた</span>の勝ちです</html>");
+			    label.setText("<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
 			} else {
-			    label.setText("<html>揃っています<br><span style='font-size:30pt; color: red;'>あいて</span>の勝ちです</html>");
+			    label.setText("<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
 			}
 		    }
 		    BO.finish_board();
+		    if(situation == 0)
+			if(!BO.isSingle())
+			    BO.sendselect(BO.get_completeline());
+		    this.remove(complete);
+		    this.add(finishpanel);
+		    repaint();
+		    timer.stop();
 		} else{
 		    label.setText("揃っていません");
 		}
@@ -683,13 +713,11 @@ class BoardFrame extends JFrame {
 	SubPanel.add(scPanel);
 	this.add(BattlePanel);
 	this.add(SubPanel);
-	this.setTitle("Quarto - Play :"+str);
+	this.setTitle("Quarto - Play : "+str);
 	this.setSize(1600,800);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
-    
-
     
 }
 
@@ -705,8 +733,10 @@ class TitleFrame extends JFrame implements ActionListener {
 	this.b = bo;
 	TitlePanel = new JPanel();
 	this.add(TitlePanel);
-	StartButton = new JButton("<html><span style='font-size:30pt; color:black;'>START</span></html>");
-	HowtoButton = new JButton("<html><span style='font-size:25pt; color:black;'>HOW TO PLAY</span></html>");
+	StartButton = new JButton("<html><img src = 'file:title/start.png' width=275 height=125></html>");
+	HowtoButton = new JButton("<html><img src = 'file:title/howtoplaybutton.png' width=275 height=125></span></html>");
+	StartButton.setMargin(new Insets(20, 0, 0, 0));
+	HowtoButton.setMargin(new Insets(20, 0, 0, 0));
 	BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>");
 	SelectLabel = new JLabel("<html><span style='font-size:25pt; color:black;'>先攻：</span></html>");
 	TitlePanel.setLayout(null);
@@ -733,6 +763,7 @@ class TitleFrame extends JFrame implements ActionListener {
     }
     
     public void actionPerformed(ActionEvent e){
+	b.initialize_board();
 	BoardFrame f = new BoardFrame(b, str);
     }
 
