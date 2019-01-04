@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.Window;
 import java.util.*;
 import javax.swing.Timer;
 import javax.swing.border.*;
