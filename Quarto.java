@@ -7,7 +7,9 @@ import javax.swing.Timer;
 import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
- 
+import javax.swing.ButtonGroup;
+import javax.swing.JRadioButton;
+
 class CommServer {
     private ServerSocket serverS = null;
     private Socket clientS = null;
@@ -726,11 +728,15 @@ class TitleFrame extends JFrame implements ActionListener {
     public JPanel TitlePanel;
     public JButton StartButton, HowtoButton;
     public JLabel SelectLabel, BackGroundLabel;
+    public JRadioButton Button1P, Button2P;
     public BoardObservable b;
     public String str;
+    public int senkou;
     public TitleFrame(BoardObservable bo, String str){
+	ButtonGroup vacationGroup = new ButtonGroup();
 	this.str = str;
 	this.b = bo;
+	this.senkou = 1;
 	TitlePanel = new JPanel();
 	this.add(TitlePanel);
 	StartButton = new JButton("<html><img src = 'file:title/start.png' width=275 height=125></html>");
@@ -743,16 +749,29 @@ class TitleFrame extends JFrame implements ActionListener {
 	BackGroundLabel.setLayout(new BorderLayout());
 	SelectLabel.setLayout(new BorderLayout());
 	BackGroundLabel.setBounds(0, 0, 1600, 800);
-	SelectLabel.setBounds(600, 400, 100, 100);
+	SelectLabel.setBounds(700, 400, 100, 100);
 	StartButton.setBounds(300, 600, 300, 100);
 	HowtoButton.setBounds(1000, 600, 300, 100);
 	StartButton.addActionListener(this);
 	HowtoButton.addActionListener(this);
+	Button1P = new JRadioButton("<html><span style='color:black;'>1P</span></html>", true);
+	Button2P = new JRadioButton("<html><span style='color:black;'>2P</span></html>");
+	Button1P.setOpaque(false); Button2P.setOpaque(false);
+	Button1P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
+	Button2P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
+	Button1P.setBounds(780, 400, 70, 100);
+	Button2P.setBounds(850, 400, 70, 100);
+	vacationGroup.add(Button1P);
+	vacationGroup.add(Button2P);
+	Button1P.addActionListener(this);
+	Button2P.addActionListener(this);
 
 	TitlePanel.add(SelectLabel);
 	TitlePanel.add(StartButton);
 	TitlePanel.add(HowtoButton);
 	TitlePanel.add(BackGroundLabel);
+	TitlePanel.add(Button1P);
+	TitlePanel.add(Button2P);
 
 	StartButton.setFocusPainted(false);
 	HowtoButton.setFocusPainted(false);
@@ -761,10 +780,20 @@ class TitleFrame extends JFrame implements ActionListener {
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
-    
+	
     public void actionPerformed(ActionEvent e){
-	b.initialize_board();
-	BoardFrame f = new BoardFrame(b, str);
+	if(e.getSource() == Button2P){
+	    Button2P.setSelected(true);
+	    Button1P.setSelected(false);
+	    senkou = 2;
+	}else if(e.getSource() == Button1P){
+	    Button1P.setSelected(true);
+	    Button2P.setSelected(false);
+	    senkou = 1;
+	}else{
+	    b.initialize_board();
+	    BoardFrame f = new BoardFrame(b, str);
+	}
     }
 
     public static void main(String[] args) {
