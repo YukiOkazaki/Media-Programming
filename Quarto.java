@@ -672,10 +672,25 @@ class BoardFrame extends JFrame {
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setVisible(true);
     }
-    
-
-    
 }
+
+class HowtoFrame extends JFrame implements ActionListener{
+    public HowtoFrame(){
+      this.setSize(1600,800);
+      this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      JButton b = new JButton("<html><span style='font-size:30pt; color:black;'>Close</span></html>");
+      this.add(b,BorderLayout.SOUTH);
+      b.addActionListener(this);
+      JLabel l = new JLabel("<html><img src='file:title/howtoplay1.png' width=1600 height=800></html>",JLabel.CENTER);
+      this.add(l,BorderLayout.CENTER);
+      this.setVisible(true);
+    }
+   public void actionPerformed(ActionEvent e) {
+          this.setVisible(false);
+       }
+
+}
+
 
 class TitleFrame extends JFrame implements ActionListener {
 
@@ -714,7 +729,13 @@ class TitleFrame extends JFrame implements ActionListener {
     }
     
     public void actionPerformed(ActionEvent e){
+	if(e.getSource() == StartButton){
 	BoardFrame f = new BoardFrame(b);
+      }
+       if(e.getSource() == HowtoButton){
+        HowtoFrame h = new HowtoFrame();
+       }
+
     }
 
     public static void main(String[] args) {
