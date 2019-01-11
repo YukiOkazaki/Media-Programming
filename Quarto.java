@@ -316,6 +316,7 @@ class BoardObservable extends Observable {
 		}
 	    }
 	}
+	if(is_draw() == 1) return 1;
 	return 0;
     }
 
@@ -355,6 +356,15 @@ class BoardObservable extends Observable {
 	if (l[i].p1 == p || l[i].p2 == p || l[i].p3 == p || l[i].p4 == p)
 	    return 1;
 	return 0;
+    }
+
+    public int is_draw(){
+	int sum = 0;
+	for(int i=0; i<16; i++){
+	    sum += koma[i];
+	}
+	if(sum == 0) return 1;
+	else return 0;
     }
 
     public boolean isServer() {
@@ -553,7 +563,7 @@ class Battle extends BoardObserver implements MouseListener { // BattleはBoardO
 	    label.setIcon(null);
 	}
 	if (BO.get_situation() == 2) {
-	    if (BO.is_inline(BO.get_completeline(), place) == 1) {
+	    if (BO.is_inline(BO.get_completeline(), place) == 1 && BO.is_draw() == 0) {
 		this.setBackground(new Color(255, 50, 50, 250));
 	    }
 	} else {
@@ -727,17 +737,20 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 		if (!BO.isSingle())
 		    BO.recvselect();
 		if (BO.is_complete() == 1 || situation == 2) { // is_completeが1ならば揃っている
-
-		    if (BO.isSingle()) {
-			label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>"
-				      + playernum + "P</span>の勝ちです</html>");
+		    if(BO.is_draw() == 1){
+			label.setText("引き分けです");	
 		    } else {
-			if (playernum == mynum) {
-			    label.setText(
-					  "<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
+			if (BO.isSingle()) {
+			    label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>"
+					  + playernum + "P</span>の勝ちです</html>");
 			} else {
-			    label.setText(
-					  "<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
+			    if (playernum == mynum) {
+				label.setText(
+					      "<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
+			    } else {
+				label.setText(
+					      "<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
+			    }
 			}
 		    }
 		    BO.finish_board();
