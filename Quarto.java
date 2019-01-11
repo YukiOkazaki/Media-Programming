@@ -253,7 +253,6 @@ class BoardObservable extends Observable {
 	situation = 0;
 	completeline = 0;
 	sp = 0;
-	playernum = 2;
 	setChanged();
 	notifyObservers();
     }
@@ -374,6 +373,33 @@ class BoardObservable extends Observable {
     public boolean isSingle() {
 	return single;
     }
+    
+    public void sendplayernum(int playernum){
+	String msg = String.format("%d", playernum);
+	if (server) {
+	    sv.send(msg);
+	} else {
+	    cl.send(msg);
+	}
+    }
+    
+    public void recvplayernum(){
+	String msg;
+	if (server) {
+	    msg = sv.recv();
+	} else {
+	    msg = cl.recv();
+	}
+	if (msg == null)
+	    return;
+	String[] sm = msg.split(" ");
+	//	if(isServer())
+	    set_playernum(Integer.parseInt(sm[0]));
+	    //	else
+	    //	    set_playernum((Integer.parseInt(sm[0]) % 2) + 1);
+	setChanged();
+	notifyObservers();
+    }
 
     public void sendselect(int place) {
 	String msg = String.format("%d %d %d %d", situation, playernum, sp, place);
@@ -452,6 +478,7 @@ class BoardObserver extends JPanel implements Observer, ActionListener { // obse
 	timer = new Timer(10, this);
 	timer.start();
 	mynum = BO.get_mynum();
+
     }
 
     public void update(Observable o, Object arg) {
@@ -472,7 +499,7 @@ class Select extends BoardObserver implements ActionListener {
     private JLabel playerlabel; // 何Pが操作するべきなのか等の情報を表示するラベル
     private String maincolor; // 1P,2Pそれぞれの色を指定する
 
-    public Select(BoardObservable observable) {
+    public Select(BoardObservable observable, int senkou) {
 	super(observable); // 親のコンストラクタを一度呼びだす
 	playerlabel = new JLabel();
 	this.add(playerlabel, BorderLayout.SOUTH); // playerlabelを下に配置
@@ -481,6 +508,10 @@ class Select extends BoardObserver implements ActionListener {
 	playerlabel.setText("");
 	playerlabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20)); // フォント設定
 	BO.initialize_board(); // 一度初期化(updateを呼ぶため)
+	if(BO.isServer() && !BO.isSingle())
+	    BO.sendplayernum(senkou);
+	else if(!BO.isServer() && !BO.isSingle())
+	    BO.recvplayernum();
 
     }
 
@@ -775,8 +806,9 @@ class BoardFrame extends JFrame {
     public Battle tmp1;
     public Standby tmp2;
     public BoardObservable b;
-    public BoardFrame(BoardObservable bo){
+    public BoardFrame(BoardObservable bo, int senkou){
 	b = bo;
+	b.set_playernum(senkou);
 	BattlePanel = new JPanel(); 
 	SubPanel = new JPanel();
 	WaitPanel = new JPanel();
@@ -797,7 +829,7 @@ class BoardFrame extends JFrame {
 	}
 	SubPanel.add(WaitPanel);
 	scPanel.setLayout(new GridLayout(1,2));
-	scPanel.add(new Select(b));
+	scPanel.add(new Select(b, senkou));
 	scPanel.add(new CompleteButton(b));
 	SubPanel.add(scPanel);
 	this.add(BattlePanel);
@@ -856,24 +888,26 @@ class TitleFrame extends JFrame implements ActionListener {
 	HowtoButton.setBounds(1000, 600, 300, 100);
 	StartButton.addActionListener(this);
 	HowtoButton.addActionListener(this);
-	Button1P = new JRadioButton("<html><span style='color:black;'>1P</span></html>", true);
-	Button2P = new JRadioButton("<html><span style='color:black;'>2P</span></html>");
-	Button1P.setOpaque(false); Button2P.setOpaque(false);
-	Button1P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
-	Button2P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
-	Button1P.setBounds(780, 400, 70, 100);
-	Button2P.setBounds(850, 400, 70, 100);
-	vacationGroup.add(Button1P);
-	vacationGroup.add(Button2P);
-	Button1P.addActionListener(this);
-	Button2P.addActionListener(this);
-
-	TitlePanel.add(SelectLabel);
+	if(b.isServer() && !b.isSingle()){
+	    Button1P = new JRadioButton("<html><span style='color:black;'>1P</span></html>", true);
+	    Button2P = new JRadioButton("<html><span style='color:black;'>2P</span></html>");
+	    Button1P.setOpaque(false); Button2P.setOpaque(false);
+	    Button1P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
+	    Button2P.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 30));
+	    Button1P.setBounds(780, 400, 70, 100);
+	    Button2P.setBounds(850, 400, 70, 100);
+	    vacationGroup.add(Button1P);
+	    vacationGroup.add(Button2P);
+	    Button1P.addActionListener(this);
+	    Button2P.addActionListener(this);
+	    TitlePanel.add(Button1P);
+	    TitlePanel.add(Button2P);
+	    TitlePanel.add(SelectLabel);
+	}
 	TitlePanel.add(StartButton);
 	TitlePanel.add(HowtoButton);
 	TitlePanel.add(BackGroundLabel);
-	TitlePanel.add(Button1P);
-	TitlePanel.add(Button2P);
+
 
 	StartButton.setFocusPainted(false);
 	HowtoButton.setFocusPainted(false);
@@ -886,7 +920,7 @@ class TitleFrame extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e){
 	if(e.getSource() == StartButton){
 	    b.initialize_board();
-	    BoardFrame f = new BoardFrame(b);
+	    BoardFrame f = new BoardFrame(b, senkou);
 	} else if(e.getSource() == HowtoButton){
 	    HowtoFrame h = new HowtoFrame();
 	} else if(e.getSource() == Button2P){
