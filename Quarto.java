@@ -803,7 +803,7 @@ class HowtoFrame extends JFrame implements ActionListener{
 	JButton b = new JButton("<html><span style='font-size:30pt; color:black;'>Close</span></html>");
 	this.add(b,BorderLayout.SOUTH);
 	b.addActionListener(this);
-	JLabel l = new JLabel("<html><img src='file:title/howtoplay1.png' width=1600 height=800></html>",JLabel.CENTER);
+	JLabel l = new JLabel("<html><img src='file:title/howtoplay.png' width=1600 height=800></html>",JLabel.CENTER);
 	this.add(l,BorderLayout.CENTER);
 	this.setVisible(true);
     }
