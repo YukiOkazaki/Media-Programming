@@ -78,7 +78,6 @@ class CommServer {
 		try {
 			msg = in.readLine();
 		} catch (SocketTimeoutException e) {
-			// System.err.println("タイムアウトです．");
 			return null;
 		} catch (IOException e) {
 			System.err.println("受信に失敗しました。");
@@ -198,10 +197,10 @@ class CommClient {
 	}
 }
 
-class line {
+class Line {
 	int p1, p2, p3, p4;
 
-	public line(int p1, int p2, int p3, int p4) {
+	public Line(int p1, int p2, int p3, int p4) {
 		this.p1 = p1;
 		this.p2 = p2;
 		this.p3 = p3;
@@ -216,7 +215,7 @@ class BoardObservable extends Observable {
 	private CommClient cl = null;
 	private int b[]; // board
 	private int koma[];
-	private line l[];
+	private Line l[];
 	private int sp; // select position
 	private int playernum; // 操作するのが何Pなのか1or2
 	private int mynum; // playerの番号サーバーが1P,クライアントが2P
@@ -247,9 +246,9 @@ class BoardObservable extends Observable {
 	public void initialize_board() {
 		b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 };
-		l = new line[] { new line(0, 4, 8, 12), new line(1, 5, 9, 13), new line(2, 6, 10, 14), new line(3, 7, 11, 15),
-				new line(0, 1, 2, 3), new line(4, 5, 6, 7), new line(8, 9, 10, 11), new line(12, 13, 14, 15),
-				new line(0, 5, 10, 15), new line(3, 6, 9, 12), };
+		l = new Line[] { new Line(0, 4, 8, 12), new Line(1, 5, 9, 13), new Line(2, 6, 10, 14), new Line(3, 7, 11, 15),
+				new Line(0, 1, 2, 3), new Line(4, 5, 6, 7), new Line(8, 9, 10, 11), new Line(12, 13, 14, 15),
+				new Line(0, 5, 10, 15), new Line(3, 6, 9, 12), };
 		situation = 0;
 		completeline = 0;
 		sp = 0;
@@ -291,7 +290,7 @@ class BoardObservable extends Observable {
 		return koma[p];
 	}
 
-	public int get_lineval(line l) {
+	public int get_lineval(Line l) {
 		int n1 = get_piece(l.p1);
 		int n2 = get_piece(l.p2);
 		int n3 = get_piece(l.p3);
