@@ -78,6 +78,7 @@ class CommServer {
 		try {
 			msg = in.readLine();
 		} catch (SocketTimeoutException e) {
+			// System.err.println("タイムアウトです．");
 			return null;
 		} catch (IOException e) {
 			System.err.println("受信に失敗しました。");
@@ -197,10 +198,10 @@ class CommClient {
 	}
 }
 
-class Line {
+class line {
 	int p1, p2, p3, p4;
 
-	public Line(int p1, int p2, int p3, int p4) {
+	public line(int p1, int p2, int p3, int p4) {
 		this.p1 = p1;
 		this.p2 = p2;
 		this.p3 = p3;
@@ -215,7 +216,7 @@ class BoardObservable extends Observable {
 	private CommClient cl = null;
 	private int b[]; // board
 	private int koma[];
-	private Line l[];
+	private line l[];
 	private int sp; // select position
 	private int playernum; // 操作するのが何Pなのか1or2
 	private int mynum; // playerの番号サーバーが1P,クライアントが2P
@@ -246,9 +247,9 @@ class BoardObservable extends Observable {
 	public void initialize_board() {
 		b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 };
-		l = new Line[] { new Line(0, 4, 8, 12), new Line(1, 5, 9, 13), new Line(2, 6, 10, 14), new Line(3, 7, 11, 15),
-				new Line(0, 1, 2, 3), new Line(4, 5, 6, 7), new Line(8, 9, 10, 11), new Line(12, 13, 14, 15),
-				new Line(0, 5, 10, 15), new Line(3, 6, 9, 12), };
+		l = new line[] { new line(0, 4, 8, 12), new line(1, 5, 9, 13), new line(2, 6, 10, 14), new line(3, 7, 11, 15),
+				new line(0, 1, 2, 3), new line(4, 5, 6, 7), new line(8, 9, 10, 11), new line(12, 13, 14, 15),
+				new line(0, 5, 10, 15), new line(3, 6, 9, 12), };
 		situation = 0;
 		completeline = 0;
 		sp = 0;
@@ -290,7 +291,7 @@ class BoardObservable extends Observable {
 		return koma[p];
 	}
 
-	public int get_lineval(Line l) {
+	public int get_lineval(line l) {
 		int n1 = get_piece(l.p1);
 		int n2 = get_piece(l.p2);
 		int n3 = get_piece(l.p3);
@@ -314,6 +315,8 @@ class BoardObservable extends Observable {
 				}
 			}
 		}
+		if (is_draw() == 1)
+			return 1;
 		return 0;
 	}
 
@@ -360,7 +363,7 @@ class BoardObservable extends Observable {
 		for (int i = 0; i < 16; i++) {
 			sum += koma[i];
 		}
-		if (sum == 0 && is_complete() == 0)
+		if (sum == 0)
 			return 1;
 		else
 			return 0;
@@ -457,7 +460,8 @@ class BoardObservable extends Observable {
 	}
 }
 
-class BoardObserver extends JPanel implements Observer, ActionListener { // observer側のすべての親クラス
+//observer側のすべての親クラス
+class BoardObserver extends JPanel implements Observer, ActionListener {
 	protected Timer timer;
 	protected BoardObservable BO;
 	protected JLabel label;
@@ -468,7 +472,7 @@ class BoardObserver extends JPanel implements Observer, ActionListener { // obse
 
 	public BoardObserver(BoardObservable observable) {
 		BO = observable;
-		BO.addObserver(this); // observerに登録
+		BO.addObserver(this); //observerに登録
 		label = new JLabel();
 		this.setLayout(new BorderLayout()); // panelは通常FlowLayoutなのでBorderLayoutに変更
 		this.add(label, BorderLayout.CENTER); // panel内に表示されるラベルの追加
@@ -544,8 +548,8 @@ class Select extends BoardObserver implements ActionListener {
 					playerlabel.setText(
 							"<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
 				} else {
-					playerlabel.setText(
-							"<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
+					playerlabel
+							.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
 				}
 			}
 		}
@@ -555,11 +559,10 @@ class Select extends BoardObserver implements ActionListener {
 						+ "P</span>は駒を盤面に置いてください</html>");
 			} else {
 				if (playernum == mynum) {
-					playerlabel
-							.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は駒を盤面に置いてください</html>");
+					playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は駒を盤面に置いてください</html>");
 				} else {
-					playerlabel.setText(
-							"<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
+					playerlabel
+							.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
 				}
 			}
 		}
@@ -767,7 +770,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 			if (situation == 0 || situation == 2) { // 判定できるのは盤面に置いた後のみ(situaitonが0)
 				if (!BO.isSingle())
 					BO.recvselect();
-				if (BO.is_draw() == 1 || BO.is_complete() == 1 || situation == 2) { // is_completeが1ならば揃っている
+				if (BO.is_complete() == 1 || situation == 2) { // is_completeが1ならば揃っている
 					if (BO.is_draw() == 1) {
 						label.setText("引き分けです");
 					} else {
@@ -776,11 +779,9 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 									+ "P</span>の勝ちです</html>");
 						} else {
 							if (playernum == mynum) {
-								label.setText(
-										"<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
+								label.setText("<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
 							} else {
-								label.setText(
-										"<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
+								label.setText("<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
 							}
 						}
 					}
@@ -845,7 +846,7 @@ class BoardFrame extends JFrame {
 class HowtoFrame extends JFrame implements ActionListener {
 	public HowtoFrame() {
 		this.setSize(1600, 800);
-		//		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JButton b = new JButton("<html><span style='font-size:30pt; color:black;'>Close</span></html>");
 		this.add(b, BorderLayout.SOUTH);
 		b.addActionListener(this);
