@@ -1,3 +1,0 @@
-# Media-Programming
-とりあえずmasterからpullして自分の作業をこなす
-自分のつくった分岐がいいと思ったらマージする
