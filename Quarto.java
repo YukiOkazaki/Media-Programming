@@ -548,8 +548,7 @@ class Select extends BoardObserver implements ActionListener {
           playerlabel.setText(
               "<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
         } else {
-          playerlabel
-              .setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
+          playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
         }
       }
     }
@@ -942,7 +941,9 @@ class TitleFrame extends JFrame implements ActionListener {
     String str;
     boolean server = false;
     if (args.length < 2) {
-      System.out.println("Usage : java BoardFrame {server/single/{host name}} {port no.} \n");
+      System.out.println("Usage : java TitleFrame {server/single/{host name}} {port no.}");
+      System.out.println("or");
+      System.out.println("If you expand jar, Usage : Quarto.jar {server/single/{host name}} {port no.} \n");
       System.exit(1);
     }
     BoardObservable bo;
