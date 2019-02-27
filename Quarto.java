@@ -198,7 +198,7 @@ class CommClient {
   }
 }
 
-class line {
+class line {   //各列の４つの要素について
   int p1, p2, p3, p4;
 
   public line(int p1, int p2, int p3, int p4) {
@@ -214,14 +214,14 @@ class BoardObservable extends Observable {
   private boolean single = false;
   private CommServer sv = null;
   private CommClient cl = null;
-  private int b[]; // board
-  private int koma[];
-  private line l[];
-  private int sp; // select position
+  private int b[]; // 盤面
+  private int koma[];// 駒を収納する配列
+  private line l[];// 盤面上の列を収納する配列
+  private int sp; // プレイヤーが選んだ位置(select position)
   private int playernum; // 操作するのが何Pなのか1or2
   private int mynum; // playerの番号サーバーが1P,クライアントが2P
   private int situation; // 0が選択画面、1が盤面に置く 2が終了
-  private int completeline;
+  private int completeline;// 要素がそろっている列
 
   public BoardObservable(boolean server, String host, int port) {
     this.server = server;
@@ -245,8 +245,8 @@ class BoardObservable extends Observable {
   }
 
   public void initialize_board() {
-    b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 };
+    b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };// 盤面を初期化
+    koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 };// 置き駒配列
     l = new line[] { new line(0, 4, 8, 12), new line(1, 5, 9, 13), new line(2, 6, 10, 14), new line(3, 7, 11, 15),
         new line(0, 1, 2, 3), new line(4, 5, 6, 7), new line(8, 9, 10, 11), new line(12, 13, 14, 15),
         new line(0, 5, 10, 15), new line(3, 6, 9, 12), };
@@ -263,16 +263,16 @@ class BoardObservable extends Observable {
     notifyObservers();
   }
 
-  public void set_piece(int s, int p) { // sum,position
+  public void set_piece(int s, int p) { // sは盤面にセットする値 pは盤面の位置
     b[p] = s;
-    sp = 0;
+    sp = 0;// 選択した位置を初期化
     setChanged();
     notifyObservers();
   }
 
   public void set_selectpiece(int s, int p) {
     sp = s;
-    koma[p] = 0;
+    koma[p] = 0;// 置き駒配列から消去
     setChanged();
     notifyObservers();
   }
@@ -297,20 +297,20 @@ class BoardObservable extends Observable {
     int n3 = get_piece(l.p3);
     int n4 = get_piece(l.p4);
     int mul;
-    mul = n1 * n2 * n3 * n4;
+    mul = n1 * n2 * n3 * n4;// 勝敗判定計算のため、列の４つの駒の値の積を求める
     return mul;
   }
 
   public int is_complete() {
     int c[] = new int[10];
     for (int i = 0; i < 10; i++) {
-      c[i] = get_lineval(l[i]);
+      c[i] = get_lineval(l[i]);// １０つの列について
       if (c[i] % 16 == 0 || c[i] % 2 != 0 || c[i] % 81 == 0 || c[i] % 3 != 0 || c[i] % 625 == 0 || c[i] % 5 != 0
-          || c[i] % 2401 == 0 || c[i] % 7 != 0) {
+          || c[i] % 2401 == 0 || c[i] % 7 != 0) {// 勝敗判定計算
         if (c[i] == 0) {
           continue;
         } else {
-          completeline = i;
+          completeline = i;// どの列で揃ったのか保存する
           return 1;
         }
       }
@@ -352,13 +352,13 @@ class BoardObservable extends Observable {
     completeline = num;
   }
 
-  public int is_inline(int i, int p) {
+  public int is_inline(int i, int p) {// 位置ｐがどの列に含まれているかを返す
     if (l[i].p1 == p || l[i].p2 == p || l[i].p3 == p || l[i].p4 == p)
       return 1;
     return 0;
   }
 
-  public int is_draw() {
+  public int is_draw() { // 引き分けかどうかを判定する
     int sum = 0;
     for (int i = 0; i < 16; i++) {
       sum += koma[i];
