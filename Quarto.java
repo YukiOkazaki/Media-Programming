@@ -305,8 +305,7 @@ class BoardObservable extends Observable {
     int c[] = new int[10];
     for (int i = 0; i < 10; i++) {
       c[i] = get_lineval(l[i]);// １０つの列について
-      if (c[i] % 16 == 0 || c[i] % 2 != 0 || c[i] % 81 == 0 || c[i] % 3 != 0 || c[i] % 625 == 0 || c[i] % 5 != 0
-          || c[i] % 2401 == 0 || c[i] % 7 != 0) {// 勝敗判定計算
+      if (c[i] % 16 == 0 || c[i] % 2 != 0 || c[i] % 81 == 0 || c[i] % 3 != 0 || c[i] % 625 == 0 || c[i] % 5 != 0 || c[i] % 2401 == 0 || c[i] % 7 != 0) {// 勝敗判定計算
         if (c[i] == 0) {
           continue;
         } else {
@@ -396,10 +395,7 @@ class BoardObservable extends Observable {
     if (msg == null)
       return;
     String[] sm = msg.split(" ");
-    // if(isServer())
     set_playernum(Integer.parseInt(sm[0]));
-    // else
-    // set_playernum((Integer.parseInt(sm[0]) % 2) + 1);
     setChanged();
     notifyObservers();
   }
@@ -525,8 +521,7 @@ class Select extends BoardObserver implements ActionListener {
     if (val != 0) { // 選ばれた駒が有効（値が0でない）場合は選ばれた値の画像を表示
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png"); // iconに選ばれた値の画像を読み込む
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 1.0),
-          (int) (icon.getIconHeight() * 1.0), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 1.0), (int) (icon.getIconHeight() * 1.0), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg); // 大きさを調整したsmallimageをsmalliconに読み込ませる
       label.setIcon(smallicon); // ラベルに配置する
     } else {
@@ -541,12 +536,10 @@ class Select extends BoardObserver implements ActionListener {
     situation = BO.get_situation(); // 選択画面なのか、盤面に置く画面なのかをsituationとして受け取る
     if (situation == 0) { // situationに応じてメッセージを表示する
       if (BO.isSingle()) {
-        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
-            + "P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
+        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum + "P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
       } else {
         if (playernum == mynum) {
-          playerlabel.setText(
-              "<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
+          playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
         } else {
           playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
         }
@@ -554,14 +547,12 @@ class Select extends BoardObserver implements ActionListener {
     }
     if (situation == 1) {
       if (BO.isSingle()) {
-        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
-            + "P</span>は駒を盤面に置いてください</html>");
+        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum + "P</span>は駒を盤面に置いてください</html>");
       } else {
         if (playernum == mynum) {
           playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は駒を盤面に置いてください</html>");
         } else {
-          playerlabel
-              .setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
+          playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
         }
       }
     }
@@ -574,7 +565,6 @@ class Select extends BoardObserver implements ActionListener {
 
 class Battle extends BoardObserver implements MouseListener { // BattleはBoardObserverを継承, MouseListenerを追加
   private int place;
-
   public Battle(BoardObservable observable, int place) {
     super(observable); // 親のコンストラクタを一度呼び出す
     this.place = place;
@@ -588,8 +578,7 @@ class Battle extends BoardObserver implements MouseListener { // BattleはBoardO
     if (val != 0) { // 駒が有効であれば値の画像を表示 表示方法はSelectと同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.7),
-          (int) (icon.getIconHeight() * 0.7), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.7), (int) (icon.getIconHeight() * 0.7), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else {
@@ -650,8 +639,7 @@ class Standby extends BoardObserver implements MouseListener { // StandbyはBoar
     if (val != 0) { // もし値があればその値の画像を表示 表示方法は同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4),
-          (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4), (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else {
@@ -665,8 +653,7 @@ class Standby extends BoardObserver implements MouseListener { // StandbyはBoar
     if (val != 0) { // 駒が有効であればその値の画像を表示 表示方法は同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4),
-          (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4), (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else { // 駒がなければ何も表示しない
@@ -721,8 +708,6 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 
   public CompleteButton(BoardObservable observable) {
     super(observable); // 親コンストラクタを呼び出す
-    // complete = new JButton("<html><span style='font-size:50pt; color: #FFCC00;'
-    // >Quarto!</span></html>"); //ボタンを作成
     complete = new JButton("<html><img src = 'file:title/quartobutton.png' width=350 height=100></html>"); // ボタンを作成;
     complete.setPreferredSize(null);
     complete.setFocusPainted(false); // ボタンの枠線を消す
@@ -741,7 +726,6 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
     finishpanel.setLayout(new GridLayout(1, 2));
     finishpanel.add(restart);
     finishpanel.add(quit);
-
   }
 
   @Override
@@ -774,8 +758,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
             label.setText("引き分けです");
           } else {
             if (BO.isSingle()) {
-              label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>" + playernum
-                  + "P</span>の勝ちです</html>");
+              label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>" + playernum + "P</span>の勝ちです</html>");
             } else {
               if (playernum == mynum) {
                 label.setText("<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
