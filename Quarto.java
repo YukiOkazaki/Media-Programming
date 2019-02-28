@@ -802,7 +802,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 
 class BoardFrame extends JFrame {
 
-  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;
+  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;       //ゲーム画面を構成する4つのJPanel
   public Battle tmp1;
   public Standby tmp2;
   public BoardObservable b;
@@ -861,10 +861,10 @@ class HowtoFrame extends JFrame implements ActionListener {
 
 class TitleFrame extends JFrame implements ActionListener {
 
-  public JPanel TitlePanel;
-  public JButton StartButton, HowtoButton;
+  public JPanel TitlePanel;                             //タイトル画面全体用のJPanel
+  public JButton StartButton, HowtoButton;              //ゲーム画面、ルール画面遷移用のJButton       
   public JLabel SelectLabel, BackGroundLabel;
-  public JRadioButton Button1P, Button2P;
+  public JRadioButton Button1P, Button2P;               //先攻後攻の選択用のJRadioButton  
   public BoardObservable b;
   public String str;
   public int senkou;
@@ -920,7 +920,7 @@ class TitleFrame extends JFrame implements ActionListener {
     this.setVisible(true);
   }
 
-    public void actionPerformed(ActionEvent e) {     //先攻後攻の決定
+  public void actionPerformed(ActionEvent e) {     //先攻後攻の決定
     if (e.getSource() == StartButton) {
       b.initialize_board();
       BoardFrame f = new BoardFrame(b, senkou);
