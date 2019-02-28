@@ -785,7 +785,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 
 class BoardFrame extends JFrame {
 
-  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;
+  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;       //ゲーム画面を構成する4つのJPanel
   public Battle tmp1;
   public Standby tmp2;
   public BoardObservable b;
@@ -844,26 +844,26 @@ class HowtoFrame extends JFrame implements ActionListener {
 
 class TitleFrame extends JFrame implements ActionListener {
 
-  public JPanel TitlePanel;
-  public JButton StartButton, HowtoButton;
+  public JPanel TitlePanel;                             //タイトル画面全体用のJPanel
+  public JButton StartButton, HowtoButton;              //ゲーム画面、ルール画面遷移用のJButton       
   public JLabel SelectLabel, BackGroundLabel;
-  public JRadioButton Button1P, Button2P;
+  public JRadioButton Button1P, Button2P;               //先攻後攻の選択用のJRadioButton  
   public BoardObservable b;
   public String str;
   public int senkou;
 
   public TitleFrame(BoardObservable bo, String str) {
-    ButtonGroup vacationGroup = new ButtonGroup();
+    ButtonGroup vacationGroup = new ButtonGroup();　　　　　
     this.str = str;
     this.b = bo;
-    this.senkou = 1;
+    this.senkou = 1;　　　　　　　　　　　　　　　　　　　　//初期値として引数senkouに1を与える
     TitlePanel = new JPanel();
     this.add(TitlePanel);
     StartButton = new JButton("<html><img src = 'file:title/start.png' width=275 height=125></html>");
     HowtoButton = new JButton("<html><img src = 'file:title/howtoplaybutton.png' width=275 height=125></span></html>");
     StartButton.setMargin(new Insets(20, 0, 0, 0));
     HowtoButton.setMargin(new Insets(20, 0, 0, 0));
-    BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>");
+    BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>");       //背景追加
     SelectLabel = new JLabel("<html><span style='font-size:25pt; color:black;'>先攻：</span></html>");
     TitlePanel.setLayout(null);
     BackGroundLabel.setLayout(new BorderLayout());
@@ -874,7 +874,7 @@ class TitleFrame extends JFrame implements ActionListener {
     HowtoButton.setBounds(1000, 600, 300, 100);
     StartButton.addActionListener(this);
     HowtoButton.addActionListener(this);
-    if (b.isServer() && !b.isSingle()) {
+    if (b.isServer() && !b.isSingle()) {              //server mode時の先攻後攻ボタンの表示
       Button1P = new JRadioButton("<html><span style='color:black;'>1P</span></html>", true);
       Button2P = new JRadioButton("<html><span style='color:black;'>2P</span></html>");
       Button1P.setOpaque(false);
@@ -903,7 +903,7 @@ class TitleFrame extends JFrame implements ActionListener {
     this.setVisible(true);
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(ActionEvent e) {     //先攻後攻の決定
     if (e.getSource() == StartButton) {
       b.initialize_board();
       BoardFrame f = new BoardFrame(b, senkou);
@@ -930,7 +930,7 @@ class TitleFrame extends JFrame implements ActionListener {
       System.exit(1);
     }
     BoardObservable bo;
-    if (args[0].equals("server")) {
+    if (args[0].equals("server")) {　　　　　　　//modeの決定をしてタイトル画面の表示
       server = true;
       System.out.println("Server mode");
       str = "server";
