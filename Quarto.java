@@ -198,10 +198,10 @@ class CommClient {
   }
 }
 
-class line {   //各列の４つの要素について
+class Line { // 各列の4つの要素について
   int p1, p2, p3, p4;
 
-  public line(int p1, int p2, int p3, int p4) {
+  public Line(int p1, int p2, int p3, int p4) {
     this.p1 = p1;
     this.p2 = p2;
     this.p3 = p3;
@@ -215,13 +215,13 @@ class BoardObservable extends Observable {
   private CommServer sv = null;
   private CommClient cl = null;
   private int b[]; // 盤面
-  private int koma[];// 駒を収納する配列
-  private line l[];// 盤面上の列を収納する配列
+  private int koma[]; // 駒を収納する配列
+  private Line l[]; // 盤面上の列を収納する配列
   private int sp; // プレイヤーが選んだ位置(select position)
   private int playernum; // 操作するのが何Pなのか1or2
   private int mynum; // playerの番号サーバーが1P,クライアントが2P
   private int situation; // 0が選択画面、1が盤面に置く 2が終了
-  private int completeline;// 要素がそろっている列
+  private int completeline; // 要素がそろっている列
 
   public BoardObservable(boolean server, String host, int port) {
     this.server = server;
@@ -245,11 +245,11 @@ class BoardObservable extends Observable {
   }
 
   public void initialize_board() {
-    b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };// 盤面を初期化
-    koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 };// 置き駒配列
-    l = new line[] { new line(0, 4, 8, 12), new line(1, 5, 9, 13), new line(2, 6, 10, 14), new line(3, 7, 11, 15),
-        new line(0, 1, 2, 3), new line(4, 5, 6, 7), new line(8, 9, 10, 11), new line(12, 13, 14, 15),
-        new line(0, 5, 10, 15), new line(3, 6, 9, 12), };
+    b = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; // 盤面を初期化
+    koma = new int[] { 1, 5, 7, 35, 2, 10, 14, 70, 3, 15, 21, 105, 6, 30, 42, 210 }; // 置き駒配列
+    l = new Line[] { new Line(0, 4, 8, 12), new Line(1, 5, 9, 13), new Line(2, 6, 10, 14), new Line(3, 7, 11, 15),
+        new Line(0, 1, 2, 3), new Line(4, 5, 6, 7), new Line(8, 9, 10, 11), new Line(12, 13, 14, 15),
+        new Line(0, 5, 10, 15), new Line(3, 6, 9, 12), };
     situation = 0;
     completeline = 0;
     sp = 0;
@@ -265,14 +265,14 @@ class BoardObservable extends Observable {
 
   public void set_piece(int s, int p) { // sは盤面にセットする値 pは盤面の位置
     b[p] = s;
-    sp = 0;// 選択した位置を初期化
+    sp = 0; // 選択した位置を初期化
     setChanged();
     notifyObservers();
   }
 
   public void set_selectpiece(int s, int p) {
     sp = s;
-    koma[p] = 0;// 置き駒配列から消去
+    koma[p] = 0; // 置き駒配列から消去
     setChanged();
     notifyObservers();
   }
@@ -291,13 +291,13 @@ class BoardObservable extends Observable {
     return koma[p];
   }
 
-  public int get_lineval(line l) {
+  public int get_lineval(Line l) {
     int n1 = get_piece(l.p1);
     int n2 = get_piece(l.p2);
     int n3 = get_piece(l.p3);
     int n4 = get_piece(l.p4);
     int mul;
-    mul = n1 * n2 * n3 * n4;// 勝敗判定計算のため、列の４つの駒の値の積を求める
+    mul = n1 * n2 * n3 * n4; // 勝敗判定計算のため、列の4つの駒の値の積を求める
     return mul;
   }
 
@@ -305,11 +305,12 @@ class BoardObservable extends Observable {
     int c[] = new int[10];
     for (int i = 0; i < 10; i++) {
       c[i] = get_lineval(l[i]);// １０つの列について
-      if (c[i] % 16 == 0 || c[i] % 2 != 0 || c[i] % 81 == 0 || c[i] % 3 != 0 || c[i] % 625 == 0 || c[i] % 5 != 0 || c[i] % 2401 == 0 || c[i] % 7 != 0) {// 勝敗判定計算
+      if (c[i] % 16 == 0 || c[i] % 2 != 0 || c[i] % 81 == 0 || c[i] % 3 != 0 || c[i] % 625 == 0 || c[i] % 5 != 0
+          || c[i] % 2401 == 0 || c[i] % 7 != 0) { // 勝敗判定計算
         if (c[i] == 0) {
           continue;
         } else {
-          completeline = i;// どの列で揃ったのか保存する
+          completeline = i; // どの列で揃ったのか保存する
           return 1;
         }
       }
@@ -351,7 +352,7 @@ class BoardObservable extends Observable {
     completeline = num;
   }
 
-  public int is_inline(int i, int p) {// 位置ｐがどの列に含まれているかを返す
+  public int is_inline(int i, int p) { // 位置pがどの列に含まれているかを返す
     if (l[i].p1 == p || l[i].p2 == p || l[i].p3 == p || l[i].p4 == p)
       return 1;
     return 0;
@@ -456,7 +457,7 @@ class BoardObservable extends Observable {
   }
 }
 
-//observer側のすべての親クラス
+// observer側のすべての親クラス
 class BoardObserver extends JPanel implements Observer, ActionListener {
   protected Timer timer;
   protected BoardObservable BO;
@@ -468,7 +469,7 @@ class BoardObserver extends JPanel implements Observer, ActionListener {
 
   public BoardObserver(BoardObservable observable) {
     BO = observable;
-    BO.addObserver(this); //observerに登録
+    BO.addObserver(this); // observerに登録
     label = new JLabel();
     this.setLayout(new BorderLayout()); // panelは通常FlowLayoutなのでBorderLayoutに変更
     this.add(label, BorderLayout.CENTER); // panel内に表示されるラベルの追加
@@ -521,7 +522,8 @@ class Select extends BoardObserver implements ActionListener {
     if (val != 0) { // 選ばれた駒が有効（値が0でない）場合は選ばれた値の画像を表示
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png"); // iconに選ばれた値の画像を読み込む
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 1.0), (int) (icon.getIconHeight() * 1.0), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 1.0),
+          (int) (icon.getIconHeight() * 1.0), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg); // 大きさを調整したsmallimageをsmalliconに読み込ませる
       label.setIcon(smallicon); // ラベルに配置する
     } else {
@@ -536,23 +538,28 @@ class Select extends BoardObserver implements ActionListener {
     situation = BO.get_situation(); // 選択画面なのか、盤面に置く画面なのかをsituationとして受け取る
     if (situation == 0) { // situationに応じてメッセージを表示する
       if (BO.isSingle()) {
-        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum + "P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
+        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
+            + "P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
       } else {
         if (playernum == mynum) {
-          playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
+          playerlabel.setText(
+              "<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
         } else {
-          playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
+          playerlabel
+              .setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を選んでいます</html>");
         }
       }
     }
     if (situation == 1) {
       if (BO.isSingle()) {
-        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum + "P</span>は駒を盤面に置いてください</html>");
+        playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
+            + "P</span>は駒を盤面に置いてください</html>");
       } else {
         if (playernum == mynum) {
           playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は駒を盤面に置いてください</html>");
         } else {
-          playerlabel.setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
+          playerlabel
+              .setText("<html>待機中...   <br><span style='font-size:24pt; color: red;'>あいて</span>が駒を置いています</html>");
         }
       }
     }
@@ -565,6 +572,7 @@ class Select extends BoardObserver implements ActionListener {
 
 class Battle extends BoardObserver implements MouseListener { // BattleはBoardObserverを継承, MouseListenerを追加
   private int place;
+
   public Battle(BoardObservable observable, int place) {
     super(observable); // 親のコンストラクタを一度呼び出す
     this.place = place;
@@ -578,7 +586,8 @@ class Battle extends BoardObserver implements MouseListener { // BattleはBoardO
     if (val != 0) { // 駒が有効であれば値の画像を表示 表示方法はSelectと同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.7), (int) (icon.getIconHeight() * 0.7), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.7),
+          (int) (icon.getIconHeight() * 0.7), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else {
@@ -639,7 +648,8 @@ class Standby extends BoardObserver implements MouseListener { // StandbyはBoar
     if (val != 0) { // もし値があればその値の画像を表示 表示方法は同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4), (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4),
+          (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else {
@@ -653,7 +663,8 @@ class Standby extends BoardObserver implements MouseListener { // StandbyはBoar
     if (val != 0) { // 駒が有効であればその値の画像を表示 表示方法は同様
       label.setText("");
       ImageIcon icon = new ImageIcon("./img/" + val + ".png");
-      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4), (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
+      Image smallimg = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * 0.4),
+          (int) (icon.getIconHeight() * 0.4), Image.SCALE_DEFAULT);
       ImageIcon smallicon = new ImageIcon(smallimg);
       label.setIcon(smallicon);
     } else { // 駒がなければ何も表示しない
@@ -758,7 +769,8 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
             label.setText("引き分けです");
           } else {
             if (BO.isSingle()) {
-              label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>" + playernum + "P</span>の勝ちです</html>");
+              label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>" + playernum
+                  + "P</span>の勝ちです</html>");
             } else {
               if (playernum == mynum) {
                 label.setText("<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
@@ -785,7 +797,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
 
 class BoardFrame extends JFrame {
 
-  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel;       //ゲーム画面を構成する4つのJPanel
+  public JPanel BattlePanel, SubPanel, WaitPanel, scPanel; // ゲーム画面を構成する4つのJPanel
   public Battle tmp1;
   public Standby tmp2;
   public BoardObservable b;
@@ -844,26 +856,26 @@ class HowtoFrame extends JFrame implements ActionListener {
 
 class TitleFrame extends JFrame implements ActionListener {
 
-  public JPanel TitlePanel;                             //タイトル画面全体用のJPanel
-  public JButton StartButton, HowtoButton;              //ゲーム画面、ルール画面遷移用のJButton       
+  public JPanel TitlePanel; // タイトル画面全体用のJPanel
+  public JButton StartButton, HowtoButton; // ゲーム画面、ルール画面遷移用のJButton
   public JLabel SelectLabel, BackGroundLabel;
-  public JRadioButton Button1P, Button2P;               //先攻後攻の選択用のJRadioButton  
+  public JRadioButton Button1P, Button2P; // 先攻後攻の選択用のJRadioButton
   public BoardObservable b;
   public String str;
   public int senkou;
 
   public TitleFrame(BoardObservable bo, String str) {
-    ButtonGroup vacationGroup = new ButtonGroup();　　　　　
+    ButtonGroup vacationGroup = new ButtonGroup();
     this.str = str;
     this.b = bo;
-    this.senkou = 1;　　　　　　　　　　　　　　　　　　　　//初期値として引数senkouに1を与える
+    this.senkou = 1; // 初期値として引数senkouに1を与える
     TitlePanel = new JPanel();
     this.add(TitlePanel);
     StartButton = new JButton("<html><img src = 'file:title/start.png' width=275 height=125></html>");
     HowtoButton = new JButton("<html><img src = 'file:title/howtoplaybutton.png' width=275 height=125></span></html>");
     StartButton.setMargin(new Insets(20, 0, 0, 0));
     HowtoButton.setMargin(new Insets(20, 0, 0, 0));
-    BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>");       //背景追加
+    BackGroundLabel = new JLabel("<html><img src='file:title/title.png' width=1600 height=800></html>"); // 背景追加
     SelectLabel = new JLabel("<html><span style='font-size:25pt; color:black;'>先攻：</span></html>");
     TitlePanel.setLayout(null);
     BackGroundLabel.setLayout(new BorderLayout());
@@ -874,7 +886,7 @@ class TitleFrame extends JFrame implements ActionListener {
     HowtoButton.setBounds(1000, 600, 300, 100);
     StartButton.addActionListener(this);
     HowtoButton.addActionListener(this);
-    if (b.isServer() && !b.isSingle()) {              //server mode時の先攻後攻ボタンの表示
+    if (b.isServer() && !b.isSingle()) { // server mode時の先攻後攻ボタンの表示
       Button1P = new JRadioButton("<html><span style='color:black;'>1P</span></html>", true);
       Button2P = new JRadioButton("<html><span style='color:black;'>2P</span></html>");
       Button1P.setOpaque(false);
@@ -903,7 +915,7 @@ class TitleFrame extends JFrame implements ActionListener {
     this.setVisible(true);
   }
 
-  public void actionPerformed(ActionEvent e) {     //先攻後攻の決定
+  public void actionPerformed(ActionEvent e) { // 先攻後攻の決定
     if (e.getSource() == StartButton) {
       b.initialize_board();
       BoardFrame f = new BoardFrame(b, senkou);
@@ -930,7 +942,7 @@ class TitleFrame extends JFrame implements ActionListener {
       System.exit(1);
     }
     BoardObservable bo;
-    if (args[0].equals("server")) {　　　　　　　//modeの決定をしてタイトル画面の表示
+    if (args[0].equals("server")) { // modeの決定をしてタイトル画面の表示
       server = true;
       System.out.println("Server mode");
       str = "server";
