@@ -176,7 +176,7 @@ class CommClient {
     try {
       clientS.setSoTimeout(to);
     } catch (SocketException e) {
-      System.err.println("タイムアウト時間を変更できません．");
+      System.err.println("タイムアウト時間を変更できません。");
       System.exit(1);
     }
     return to;
@@ -220,7 +220,7 @@ class BoardObservable extends Observable {
   private int sp; // プレイヤーが選んだ位置(select position)
   private int playernum; // 操作するのが何Pなのか1or2
   private int mynum; // playerの番号サーバーが1P,クライアントが2P
-  private int situation; // 0が選択画面、1が盤面に置く 2が終了
+  private int situation; // 0が選択画面，1が盤面に置く 2が終了
   private int completeline; // 要素がそろっている列
 
   public BoardObservable(boolean server, String host, int port) {
@@ -297,7 +297,7 @@ class BoardObservable extends Observable {
     int n3 = get_piece(l.p3);
     int n4 = get_piece(l.p4);
     int mul;
-    mul = n1 * n2 * n3 * n4; // 勝敗判定計算のため、列の4つの駒の値の積を求める
+    mul = n1 * n2 * n3 * n4; // 勝敗判定計算のため，列の4つの駒の値の積を求める
     return mul;
   }
 
@@ -457,8 +457,7 @@ class BoardObservable extends Observable {
   }
 }
 
-// observer側のすべての親クラス
-class BoardObserver extends JPanel implements Observer, ActionListener {
+class BoardObserver extends JPanel implements Observer, ActionListener { // observer側のすべての親クラス
   protected Timer timer;
   protected BoardObservable BO;
   protected JLabel label;
@@ -476,7 +475,7 @@ class BoardObserver extends JPanel implements Observer, ActionListener {
     label.setHorizontalAlignment(JLabel.CENTER); // ラベルの位置は水平方向で中心
     label.setVerticalAlignment(JLabel.CENTER); // ラベルの位置は垂直方向で中心
     label.setFont(new Font(Font.DIALOG, Font.BOLD, 40)); // ラベルのフォントの設定
-    timer = new Timer(10, this);
+    timer = new Timer(10, this); //ネットワーク対戦時同期させるためのTimer
     timer.start();
     mynum = BO.get_mynum();
 
@@ -485,18 +484,17 @@ class BoardObserver extends JPanel implements Observer, ActionListener {
   public void update(Observable o, Object arg) {
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(ActionEvent e) { // ネットワーク対戦時Timerが呼ぶ
     if (!BO.isSingle()) {
-      if (BO.get_situation() == 0)
+      if (BO.get_situation() == 0) // 駒を選択している時はrecvselectを呼ぶ
         BO.recvselect();
-      if (BO.get_situation() == 1)
+      if (BO.get_situation() == 1) // 駒を配置しようとしているときはrecvbattleを呼ぶ
         BO.recvbattle();
     }
   }
 }
 
 class Select extends BoardObserver implements ActionListener {
-
   private JLabel playerlabel; // 何Pが操作するべきなのか等の情報を表示するラベル
   private String maincolor; // 1P,2Pそれぞれの色を指定する
 
@@ -510,13 +508,13 @@ class Select extends BoardObserver implements ActionListener {
     playerlabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20)); // フォント設定
     BO.initialize_board(); // 一度初期化(updateを呼ぶため)
     if (BO.isServer() && !BO.isSingle())
-      BO.sendplayernum(senkou);
+      BO.sendplayernum(senkou); // server側であれば決定した先攻をModelに送信する
     else if (!BO.isServer() && !BO.isSingle())
-      BO.recvplayernum();
+      BO.recvplayernum(); // client側であればModelから先攻を受け取る
 
   }
 
-  @Override
+  @Override // updateをOverrideでSelect用に変更
   public void update(Observable o, Object arg) { // BoardObserverを継承しているのでupdateをoverride
     val = BO.get_selectpiece(); // 選ばれた駒の値をvalに入れる
     if (val != 0) { // 選ばれた駒が有効（値が0でない）場合は選ばれた値の画像を表示
@@ -535,13 +533,13 @@ class Select extends BoardObserver implements ActionListener {
     } else {
       maincolor = "red";
     }
-    situation = BO.get_situation(); // 選択画面なのか、盤面に置く画面なのかをsituationとして受け取る
+    situation = BO.get_situation(); // 選択画面なのか，盤面に置く画面なのかをsituationとして受け取る
     if (situation == 0) { // situationに応じてメッセージを表示する
       if (BO.isSingle()) {
         playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
             + "P</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>を押してください</html>");
       } else {
-        if (playernum == mynum) {
+        if (playernum == mynum) { // ネットワーク対戦時，手番に合わせて表示するメッセージを変える
           playerlabel.setText(
               "<html><span style='font-size:24pt; color: blue;'>あなた</span>は相手の駒を選んでください<br>揃っていれば<span style='font-size:26pt; color: #FF8C00;'>Quarto!</span>と押してください</html>");
         } else {
@@ -555,7 +553,7 @@ class Select extends BoardObserver implements ActionListener {
         playerlabel.setText("<html><span style='font-size:24pt; color: " + maincolor + ";'>" + playernum
             + "P</span>は駒を盤面に置いてください</html>");
       } else {
-        if (playernum == mynum) {
+        if (playernum == mynum) { // ネットワーク対戦時，手番に合わせて表示するメッセージを変える
           playerlabel.setText("<html><span style='font-size:24pt; color: blue;'>あなた</span>は駒を盤面に置いてください</html>");
         } else {
           playerlabel
@@ -563,7 +561,7 @@ class Select extends BoardObserver implements ActionListener {
         }
       }
     }
-    if (situation == 2) {
+    if (situation == 2) { // 終了した場合(situationが2)の場合はメッセージを表示させない
       playerlabel.setText("");
     }
   }
@@ -593,8 +591,8 @@ class Battle extends BoardObserver implements MouseListener { // BattleはBoardO
     } else {
       label.setIcon(null);
     }
-    if (BO.get_situation() == 2) {
-      if (BO.is_inline(BO.get_completeline(), place) == 1 && BO.is_draw() == 0) {
+    if (BO.get_situation() == 2) { // ゲーム終了の場合
+      if (BO.is_inline(BO.get_completeline(), place) == 1 && BO.is_draw() == 0) { // 揃っている列にPanelのplaceが入っていれば，背景を赤くする
         this.setBackground(new Color(255, 50, 50, 250));
       }
     } else {
@@ -606,14 +604,14 @@ class Battle extends BoardObserver implements MouseListener { // BattleはBoardO
     if (!BO.isSingle() && BO.get_playernum() != mynum)
       return;
     val = BO.get_selectpiece(); // どの駒が選ばれているかをvalに入れる
-    if (val == 0) // 何も選ばれていなければそのまま終了
+    if (val == 0) // 何も選ばれていなければそのまま終了（動作不可能にさせる）
       return;
-    if (BO.get_piece(place) != 0) // 盤面にすでに置かれている場合はそのまま終了
+    if (BO.get_piece(place) != 0) // 盤面にすでに置かれている場合はそのまま終了（動作不可能にさせる）
       return;
     BO.set_situation(0); // situationを0（選択画面）に変更
     BO.set_piece(val, place); // 盤面に選ばれた駒を置く
     if (!BO.isSingle()) {
-      BO.sendbattle(place, val);
+      BO.sendbattle(place, val); // ネットワーク対戦時，置いた駒の情報を相手に送る
     }
     setBackground(null); // 背景（青）を消す
   }
@@ -675,20 +673,20 @@ class Standby extends BoardObserver implements MouseListener { // StandbyはBoar
   public void mouseClicked(MouseEvent e) { // マウスで置き駒をクリックされた時の動作
     if (BO.get_situation() == 2)
       return;
-    if (!BO.isSingle() && BO.get_playernum() != mynum)
+    if (!BO.isSingle() && BO.get_playernum() != mynum) // ネットワーク対戦時，相手の手番であればこちらは何もしない（操作不可能にする）
       return;
     val = BO.get_standbypiece(place); // 現在ある駒の値をvalに入れる
     tmp = BO.get_selectpiece(); // 現在選ばれている(Select)にある駒の値をtmpに入れる
     if (val == 0) // 駒がなければそのまま終了
       return;
-    if (tmp == 0) // 駒が選ばれていなければ、playernumを変更
+    if (tmp == 0) // 駒が選ばれていなければ，playernumを変更（2度選ぶのを防ぐ）
       BO.set_playernum(BO.get_playernum() % 2 + 1);
     else
       return;
     BO.set_situation(1); // situaitonを盤面におく状態（1）に変更
     BO.set_selectpiece(val, place); // valを選びSelectにセットする
     if (!BO.isSingle()) {
-      BO.sendselect(place);
+      BO.sendselect(place); // ネットワーク対戦時，選ばれた場所を相手に送信する
     }
     setBackground(null); // 背景(青)を消す
 
@@ -722,7 +720,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
     complete = new JButton("<html><img src = 'file:title/quartobutton.png' width=350 height=100></html>"); // ボタンを作成;
     complete.setPreferredSize(null);
     complete.setFocusPainted(false); // ボタンの枠線を消す
-    this.setLayout(new GridLayout(2, 1)); // panel内をGirdLayoutにし、縦に二分割
+    this.setLayout(new GridLayout(2, 1)); // panel内をGirdLayoutにし，縦に二分割
     this.add(complete); // ボタンを下に追加;
     complete.addActionListener(this); // ActionListenerを追加
     restart = new JButton("<html><img src = 'file:title/restart.png' width=175 height=75></html>");
@@ -742,7 +740,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
   @Override
   public void actionPerformed(ActionEvent e) { // ボタンが押された時の動作
     super.actionPerformed(e);
-    if (e.getSource() == restart) {
+    if (e.getSource() == restart) { // 再戦ボタンが押されると初期状態に戻す
       label.setText("");
       this.remove(finishpanel);
       this.add(complete);
@@ -750,7 +748,7 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
       timer.start();
       BO.initialize_board();
     }
-    if (e.getSource() == quit) {
+    if (e.getSource() == quit) { // 終了ボタンが押されるとプログラムを終了させる
       System.exit(0);
     }
     situation = BO.get_situation(); // situationを入手
@@ -764,31 +762,31 @@ class CompleteButton extends BoardObserver implements ActionListener { // BoardO
       if (situation == 0 || situation == 2) { // 判定できるのは盤面に置いた後のみ(situaitonが0)
         if (!BO.isSingle())
           BO.recvselect();
-        if (BO.is_complete() == 1 || situation == 2) { // is_completeが1ならば揃っている
-          if (BO.is_draw() == 1) {
+        if (BO.is_complete() == 1 || situation == 2) { // is_completeが1ならば揃っている situationが2の場合は相手が勝敗判定ボタンを押したことになるのでこちらも終了処理
+          if (BO.is_draw() == 1) { // 引き分けであれば引き分けと表示
             label.setText("引き分けです");
           } else {
-            if (BO.isSingle()) {
+            if (BO.isSingle()) { 
               label.setText("<html>揃っています<br><span style='font-size:60pt; color:" + maincolor + ";'>" + playernum
                   + "P</span>の勝ちです</html>");
-            } else {
+            } else { // ネットワーク対戦時，自分が押した場合は勝ちと表示
               if (playernum == mynum) {
                 label.setText("<html>揃っています<br><span style='font-size:60pt; color: blue;'>あなた</span>の勝ちです</html>");
-              } else {
+              } else { // 相手に押された場合は負けと表示
                 label.setText("<html>揃っています<br><span style='font-size:60pt; color: red;'>あいて</span>の勝ちです</html>");
               }
             }
           }
-          BO.finish_board();
-          if (situation == 0)
+          BO.finish_board(); // 終了処理を呼び出す
+          if (situation == 0) // ネットワーク対戦時，自分が勝敗判定ボタンを押した場合どの列が揃っているかを相手に送信
             if (!BO.isSingle())
               BO.sendselect(BO.get_completeline());
-          this.remove(complete);
-          this.add(finishpanel);
+          this.remove(complete); // 勝敗判定ボタンを消す
+          this.add(finishpanel); // 再戦・ゲーム終了ボタンを表示する
           repaint();
-          timer.stop();
+          timer.stop(); // 同期をやめる
         } else {
-          label.setText("揃っていません");
+          label.setText("揃っていません"); // 間違って押された時は揃っていませんと表示するだけ
         }
       }
     }
@@ -857,7 +855,7 @@ class HowtoFrame extends JFrame implements ActionListener {
 class TitleFrame extends JFrame implements ActionListener {
 
   public JPanel TitlePanel; // タイトル画面全体用のJPanel
-  public JButton StartButton, HowtoButton; // ゲーム画面、ルール画面遷移用のJButton
+  public JButton StartButton, HowtoButton; // ゲーム画面，ルール画面遷移用のJButton
   public JLabel SelectLabel, BackGroundLabel;
   public JRadioButton Button1P, Button2P; // 先攻後攻の選択用のJRadioButton
   public BoardObservable b;
@@ -938,7 +936,7 @@ class TitleFrame extends JFrame implements ActionListener {
     if (args.length < 2) {
       System.out.println("Usage : java TitleFrame {server/single/{host name}} {port no.}");
       System.out.println("or");
-      System.out.println("If you expand jar, Usage : Quarto.jar {server/single/{host name}} {port no.} \n");
+      System.out.println("If you expand jar, Usage : java Quarto.jar {server/single/{host name}} {port no.} \n");
       System.exit(1);
     }
     BoardObservable bo;
